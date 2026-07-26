@@ -1,0 +1,231 @@
+older-brother,spouse,father	ob,w,f	兄弟眷父
+older-brother,spouse,mother	ob,w,m	兄弟眷母
+older-brother,spouse,father,father	ob,w,f,f	兄弟眷祖父
+older-brother,spouse,father,mother	ob,w,f,m	兄弟眷祖母
+older-brother,spouse,mother,father	ob,w,m,f	兄弟眷外祖父
+older-brother,spouse,mother,mother	ob,w,m,m	兄弟眷外祖母
+older-brother,spouse,older-brother	ob,w,ob	兄弟眷兄弟
+older-brother,spouse,younger-sister	ob,w,ls	兄弟眷姊妹
+older-brother,spouse,older-brother,son	ob,w,ob,s	兄弟眷侄男
+older-brother,spouse,younger-brother,daughter	ob,w,lb,d	兄弟眷侄女
+older-brother,spouse,older-sister,daughter	ob,w,os,d	兄弟眷甥女
+older-brother,spouse,father,father,father	ob,w,f,f,f	
+older-brother,son,spouse,father	ob,s,w,f	侄眷兄弟
+older-brother,son,spouse,mother	ob,s,w,m	侄眷姊妹
+older-brother,son,spouse,father,father	ob,s,w,f,f	侄眷父
+older-brother,son,spouse,father,mother	ob,s,w,f,m	侄眷母
+older-brother,son,spouse,mother,father	ob,s,w,m,f	侄眷父
+older-brother,son,spouse,mother,mother	ob,s,w,m,m	侄眷母
+older-brother,son,spouse,older-brother	ob,s,w,ob	侄眷男
+older-brother,son,spouse,younger-sister	ob,s,w,ls	侄眷女
+older-brother,son,spouse,older-brother,son	ob,s,w,ob,s	侄眷孙男
+older-brother,son,spouse,younger-brother,daughter	ob,s,w,lb,d	侄眷孙女
+older-brother,son,spouse,older-sister,daughter	ob,s,w,os,d	侄眷外孙女
+older-brother,son,spouse,father,father,father	ob,s,w,f,f,f	侄眷祖父
+older-sister,son,spouse,father	os,s,w,f	甥眷兄弟
+older-sister,son,spouse,mother	os,s,w,m	甥眷姊妹
+older-sister,son,spouse,father,father	os,s,w,f,f	甥眷父
+older-sister,son,spouse,father,mother	os,s,w,f,m	甥眷母
+older-sister,son,spouse,mother,father	os,s,w,m,f	甥眷父
+older-sister,son,spouse,mother,mother	os,s,w,m,m	甥眷母
+older-sister,son,spouse,older-brother	os,s,w,ob	甥眷男
+older-sister,son,spouse,younger-sister	os,s,w,ls	甥眷女
+older-sister,son,spouse,older-brother,son	os,s,w,ob,s	甥眷孙男
+older-sister,son,spouse,younger-brother,daughter	os,s,w,lb,d	甥眷孙女
+older-sister,son,spouse,older-sister,daughter	os,s,w,os,d	甥眷外孙女
+older-sister,son,spouse,father,father,father	os,s,w,f,f,f	甥眷祖父
+father,younger-brother,spouse,father	f,lb,w,f	叔眷外祖父
+father,younger-brother,spouse,mother	f,lb,w,m	叔眷外祖母
+father,younger-brother,spouse,father,father	f,lb,w,f,f	
+father,younger-brother,spouse,father,mother	f,lb,w,f,m	
+father,younger-brother,spouse,mother,father	f,lb,w,m,f	
+father,younger-brother,spouse,mother,mother	f,lb,w,m,m	
+father,younger-brother,spouse,older-brother	f,lb,w,ob	叔眷舅父
+father,younger-brother,spouse,younger-sister	f,lb,w,ls	叔眷姨母
+father,younger-brother,spouse,older-brother,son	f,lb,w,ob,s	叔眷舅表兄|叔眷舅表弟
+father,younger-brother,spouse,younger-brother,daughter	f,lb,w,lb,d	叔眷舅表姊|叔眷舅表妹
+father,younger-brother,spouse,older-sister,daughter	f,lb,w,os,d	叔眷姨表姊|叔眷姨表妹
+father,younger-brother,spouse,father,father,father	f,lb,w,f,f,f	
+mother,older-brother,spouse,father	m,ob,w,f	舅眷外祖父
+mother,older-brother,spouse,mother	m,ob,w,m	舅眷外祖母
+mother,older-brother,spouse,father,father	m,ob,w,f,f	
+mother,older-brother,spouse,father,mother	m,ob,w,f,m	
+mother,older-brother,spouse,mother,father	m,ob,w,m,f	
+mother,older-brother,spouse,mother,mother	m,ob,w,m,m	
+mother,older-brother,spouse,older-brother	m,ob,w,ob	舅眷舅父
+mother,older-brother,spouse,younger-sister	m,ob,w,ls	舅眷姨母
+mother,older-brother,spouse,older-brother,son	m,ob,w,ob,s	舅眷舅表兄|舅眷舅表弟
+mother,older-brother,spouse,younger-brother,daughter	m,ob,w,lb,d	舅眷舅表姊|舅眷舅表妹
+mother,older-brother,spouse,older-sister,daughter	m,ob,w,os,d	舅眷姨表姊|舅眷姨表妹
+mother,older-brother,spouse,father,father,father	m,ob,w,f,f,f	
+father,father,younger-brother,spouse,father	f,f,lb,w,f	
+father,father,younger-brother,spouse,mother	f,f,lb,w,m	
+father,father,younger-brother,spouse,father,father	f,f,lb,w,f,f	
+father,father,younger-brother,spouse,father,mother	f,f,lb,w,f,m	
+father,father,younger-brother,spouse,mother,father	f,f,lb,w,m,f	
+father,father,younger-brother,spouse,mother,mother	f,f,lb,w,m,m	
+father,father,younger-brother,spouse,older-brother	f,f,lb,w,ob	叔祖眷舅祖父
+father,father,younger-brother,spouse,younger-sister	f,f,lb,w,ls	叔祖眷姨祖母
+father,father,younger-brother,spouse,older-brother,son	f,f,lb,w,ob,s	叔祖眷舅表伯父|叔祖眷舅表叔父
+father,father,younger-brother,spouse,younger-brother,daughter	f,f,lb,w,lb,d	叔祖眷舅表姑母
+father,father,younger-brother,spouse,older-sister,daughter	f,f,lb,w,os,d	叔祖眷姨姑母
+father,father,younger-brother,spouse,father,father,father	f,f,lb,w,f,f,f	
+mother,father,older-brother,spouse,father	m,f,ob,w,f	
+mother,father,older-brother,spouse,mother	m,f,ob,w,m	
+mother,father,older-brother,spouse,father,father	m,f,ob,w,f,f	
+mother,father,older-brother,spouse,father,mother	m,f,ob,w,f,m	
+mother,father,older-brother,spouse,mother,father	m,f,ob,w,m,f	
+mother,father,older-brother,spouse,mother,mother	m,f,ob,w,m,m	
+mother,father,older-brother,spouse,older-brother	m,f,ob,w,ob	叔外祖眷舅祖父
+mother,father,older-brother,spouse,younger-sister	m,f,ob,w,ls	叔外祖眷姨祖母
+mother,father,older-brother,spouse,older-brother,son	m,f,ob,w,ob,s	叔外祖眷舅表伯父|叔外祖眷舅表叔父
+mother,father,older-brother,spouse,younger-brother,daughter	m,f,ob,w,lb,d	叔外祖眷舅表姑母
+mother,father,older-brother,spouse,older-sister,daughter	m,f,ob,w,os,d	叔外祖眷姨姑母
+mother,father,older-brother,spouse,father,father,father	m,f,ob,w,f,f,f	
+father,younger-brother,son,spouse,father	f,lb,s,w,f	从父兄弟眷父
+father,younger-brother,son,spouse,mother	f,lb,s,w,m	从父兄弟眷母
+father,younger-brother,son,spouse,father,father	f,lb,s,w,f,f	从父兄弟眷祖父
+father,younger-brother,son,spouse,father,mother	f,lb,s,w,f,m	从父兄弟眷祖母
+father,younger-brother,son,spouse,mother,father	f,lb,s,w,m,f	从父兄弟眷外祖父
+father,younger-brother,son,spouse,mother,mother	f,lb,s,w,m,m	从父兄弟眷外祖母
+father,younger-brother,son,spouse,older-brother	f,lb,s,w,ob	从父兄弟眷兄弟
+father,younger-brother,son,spouse,younger-sister	f,lb,s,w,ls	从父兄弟眷姊妹
+father,younger-brother,son,spouse,older-brother,son	f,lb,s,w,ob,s	从父兄弟眷侄男
+father,younger-brother,son,spouse,younger-brother,daughter	f,lb,s,w,lb,d	从父兄弟眷侄女
+father,younger-brother,son,spouse,older-sister,daughter	f,lb,s,w,os,d	从父兄弟眷甥女
+father,younger-brother,son,spouse,father,father,father	f,lb,s,w,f,f,f	
+father,younger-sister,son,spouse,father	f,ls,s,w,f	姑表兄弟眷父
+father,younger-sister,son,spouse,mother	f,ls,s,w,m	姑表兄弟眷母
+father,younger-sister,son,spouse,father,father	f,ls,s,w,f,f	姑表兄弟眷祖父
+father,younger-sister,son,spouse,father,mother	f,ls,s,w,f,m	姑表兄弟眷祖母
+father,younger-sister,son,spouse,mother,father	f,ls,s,w,m,f	姑表兄弟眷外祖父
+father,younger-sister,son,spouse,mother,mother	f,ls,s,w,m,m	姑表兄弟眷外祖母
+father,younger-sister,son,spouse,older-brother	f,ls,s,w,ob	姑表兄弟眷兄弟
+father,younger-sister,son,spouse,younger-sister	f,ls,s,w,ls	姑表兄弟眷姊妹
+father,younger-sister,son,spouse,older-brother,son	f,ls,s,w,ob,s	姑表兄弟眷侄男
+father,younger-sister,son,spouse,younger-brother,daughter	f,ls,s,w,lb,d	姑表兄弟眷侄女
+father,younger-sister,son,spouse,older-sister,daughter	f,ls,s,w,os,d	姑表兄弟眷甥女
+father,younger-sister,son,spouse,father,father,father	f,ls,s,w,f,f,f	
+father,mother,older-sister,son,spouse,father	f,m,os,s,w,f	从母叔眷外祖父
+father,mother,older-sister,son,spouse,mother	f,m,os,s,w,m	从母叔眷外祖母
+father,mother,older-sister,son,spouse,father,father	f,m,os,s,w,f,f	
+father,mother,older-sister,son,spouse,father,mother	f,m,os,s,w,f,m	
+father,mother,older-sister,son,spouse,mother,father	f,m,os,s,w,m,f	
+father,mother,older-sister,son,spouse,mother,mother	f,m,os,s,w,m,m	
+father,mother,older-sister,son,spouse,older-brother	f,m,os,s,w,ob	从母叔眷舅父
+father,mother,older-sister,son,spouse,younger-sister	f,m,os,s,w,ls	从母叔眷姨母
+father,mother,older-sister,son,spouse,older-brother,son	f,m,os,s,w,ob,s	从母叔眷舅表兄|从母叔眷舅表弟
+father,mother,older-sister,son,spouse,younger-brother,daughter	f,m,os,s,w,lb,d	从母叔眷舅表姊|从母叔眷舅表妹
+father,mother,older-sister,son,spouse,older-sister,daughter	f,m,os,s,w,os,d	从母叔眷姨表姊|从母叔眷姨表妹
+father,mother,older-sister,son,spouse,father,father,father	f,m,os,s,w,f,f,f	
+father,father,older-brother,son,spouse,father	f,f,ob,s,w,f	从父叔眷外祖父
+father,father,older-brother,son,spouse,mother	f,f,ob,s,w,m	从父叔眷外祖母
+father,father,older-brother,son,spouse,father,father	f,f,ob,s,w,f,f	
+father,father,older-brother,son,spouse,father,mother	f,f,ob,s,w,f,m	
+father,father,older-brother,son,spouse,mother,father	f,f,ob,s,w,m,f	
+father,father,older-brother,son,spouse,mother,mother	f,f,ob,s,w,m,m	
+father,father,older-brother,son,spouse,older-brother	f,f,ob,s,w,ob	从父叔眷舅父
+father,father,older-brother,son,spouse,younger-sister	f,f,ob,s,w,ls	从父叔眷姨母
+father,father,older-brother,son,spouse,older-brother,son	f,f,ob,s,w,ob,s	从父叔眷舅表兄|从父叔眷舅表弟
+father,father,older-brother,son,spouse,younger-brother,daughter	f,f,ob,s,w,lb,d	从父叔眷舅表姊|从父叔眷舅表妹
+father,father,older-brother,son,spouse,older-sister,daughter	f,f,ob,s,w,os,d	从父叔眷姨表姊|从父叔眷姨表妹
+father,father,older-brother,son,spouse,father,father,father	f,f,ob,s,w,f,f,f	
+mother,mother,younger-sister,son,spouse,father	m,m,ls,s,w,f	从母舅眷外祖父
+mother,mother,younger-sister,son,spouse,mother	m,m,ls,s,w,m	从母舅眷外祖母
+mother,mother,younger-sister,son,spouse,father,father	m,m,ls,s,w,f,f	
+mother,mother,younger-sister,son,spouse,father,mother	m,m,ls,s,w,f,m	
+mother,mother,younger-sister,son,spouse,mother,father	m,m,ls,s,w,m,f	
+mother,mother,younger-sister,son,spouse,mother,mother	m,m,ls,s,w,m,m	
+mother,mother,younger-sister,son,spouse,older-brother	m,m,ls,s,w,ob	从母舅眷舅父
+mother,mother,younger-sister,son,spouse,younger-sister	m,m,ls,s,w,ls	从母舅眷姨母
+mother,mother,younger-sister,son,spouse,older-brother,son	m,m,ls,s,w,ob,s	从母舅眷舅表兄|从母舅眷舅表弟
+mother,mother,younger-sister,son,spouse,younger-brother,daughter	m,m,ls,s,w,lb,d	从母舅眷舅表姊|从母舅眷舅表妹
+mother,mother,younger-sister,son,spouse,older-sister,daughter	m,m,ls,s,w,os,d	从母舅眷姨表姊|从母舅眷姨表妹
+mother,mother,younger-sister,son,spouse,father,father,father	m,m,ls,s,w,f,f,f	
+mother,father,older-brother,son,spouse,father	m,f,ob,s,w,f	从父舅眷外祖父
+mother,father,older-brother,son,spouse,mother	m,f,ob,s,w,m	从父舅眷外祖母
+mother,father,older-brother,son,spouse,father,father	m,f,ob,s,w,f,f	
+mother,father,older-brother,son,spouse,father,mother	m,f,ob,s,w,f,m	
+mother,father,older-brother,son,spouse,mother,father	m,f,ob,s,w,m,f	
+mother,father,older-brother,son,spouse,mother,mother	m,f,ob,s,w,m,m	
+mother,father,older-brother,son,spouse,older-brother	m,f,ob,s,w,ob	从父舅眷舅父
+mother,father,older-brother,son,spouse,younger-sister	m,f,ob,s,w,ls	从父舅眷姨母
+mother,father,older-brother,son,spouse,older-brother,son	m,f,ob,s,w,ob,s	从父舅眷舅表兄|从父舅眷舅表弟
+mother,father,older-brother,son,spouse,younger-brother,daughter	m,f,ob,s,w,lb,d	从父舅眷舅表姊|从父舅眷舅表妹
+mother,father,older-brother,son,spouse,older-sister,daughter	m,f,ob,s,w,os,d	从父舅眷姨表姊|从父舅眷姨表妹
+mother,father,older-brother,son,spouse,father,father,father	m,f,ob,s,w,f,f,f	
+father,younger-brother,son,son,spouse,father	f,lb,s,s,w,f	堂侄眷兄弟
+father,younger-brother,son,son,spouse,mother	f,lb,s,s,w,m	堂侄眷姊妹
+father,younger-brother,son,son,spouse,father,father	f,lb,s,s,w,f,f	堂侄眷父
+father,younger-brother,son,son,spouse,father,mother	f,lb,s,s,w,f,m	堂侄眷母
+father,younger-brother,son,son,spouse,mother,father	f,lb,s,s,w,m,f	堂侄眷父
+father,younger-brother,son,son,spouse,mother,mother	f,lb,s,s,w,m,m	堂侄眷母
+father,younger-brother,son,son,spouse,older-brother	f,lb,s,s,w,ob	堂侄眷男
+father,younger-brother,son,son,spouse,younger-sister	f,lb,s,s,w,ls	堂侄眷女
+father,younger-brother,son,son,spouse,older-brother,son	f,lb,s,s,w,ob,s	堂侄眷孙男
+father,younger-brother,son,son,spouse,younger-brother,daughter	f,lb,s,s,w,lb,d	堂侄眷孙女
+father,younger-brother,son,son,spouse,older-sister,daughter	f,lb,s,s,w,os,d	堂侄眷外孙女
+father,younger-brother,son,son,spouse,father,father,father	f,lb,s,s,w,f,f,f	堂侄眷祖父
+older-brother,son,son,spouse,father	ob,s,s,w,f	侄孙眷男
+older-brother,son,son,spouse,mother	ob,s,s,w,m	侄孙眷女
+older-brother,son,son,spouse,father,father	ob,s,s,w,f,f	
+older-brother,son,son,spouse,father,mother	ob,s,s,w,f,m	
+older-brother,son,son,spouse,mother,father	ob,s,s,w,m,f	
+older-brother,son,son,spouse,mother,mother	ob,s,s,w,m,m	
+older-brother,son,son,spouse,older-brother	ob,s,s,w,ob	侄孙眷孙男
+older-brother,son,son,spouse,younger-sister	ob,s,s,w,ls	侄孙眷孙女
+older-brother,son,son,spouse,older-brother,son	ob,s,s,w,ob,s	
+older-brother,son,son,spouse,younger-brother,daughter	ob,s,s,w,lb,d	
+older-brother,son,son,spouse,older-sister,daughter	ob,s,s,w,os,d	
+older-brother,son,son,spouse,father,father,father	ob,s,s,w,f,f,f	
+son,spouse,father	s,w,f	亲家公
+son,spouse,mother	s,w,m	亲家母
+son,spouse,father,father	s,w,f,f	男眷父
+son,spouse,father,mother	s,w,f,m	男眷母
+son,spouse,mother,father	s,w,m,f	男眷父
+son,spouse,mother,mother	s,w,m,m	男眷母
+son,spouse,older-brother	s,w,ob	姻侄
+son,spouse,younger-sister	s,w,ls	姻侄女
+son,spouse,older-brother,son	s,w,ob,s	姻侄孙
+son,spouse,younger-brother,daughter	s,w,lb,d	姻侄孙女
+son,spouse,older-sister,daughter	s,w,os,d	姻侄外孙女
+son,spouse,father,father,father	s,w,f,f,f	男眷祖父
+son,son,spouse,father	s,s,w,f	孙眷男
+son,son,spouse,mother	s,s,w,m	孙眷女
+son,son,spouse,father,father	s,s,w,f,f	
+son,son,spouse,father,mother	s,s,w,f,m	
+son,son,spouse,mother,father	s,s,w,m,f	
+son,son,spouse,mother,mother	s,s,w,m,m	
+son,son,spouse,older-brother	s,s,w,ob	孙眷孙男
+son,son,spouse,younger-sister	s,s,w,ls	孙眷孙女
+son,son,spouse,older-brother,son	s,s,w,ob,s	
+son,son,spouse,younger-brother,daughter	s,s,w,lb,d	
+son,son,spouse,older-sister,daughter	s,s,w,os,d	
+son,son,spouse,father,father,father	s,s,w,f,f,f	
+mother,father,older-brother,son	m,f,ob,s	堂舅
+mother,father,older-brother,son,spouse	m,f,ob,s,w	堂舅妈
+mother,father,older-brother,daughter	m,f,ob,d	堂姨
+mother,father,older-brother,daughter,spouse	m,f,ob,d,w	
+mother,mother,older-sister,daughter	m,m,os,d	姨姨母
+mother,mother,older-sister,daughter,spouse	m,m,os,d,w	
+father,mother,older-brother,son	f,m,ob,s	舅表伯父|舅表叔父
+father,mother,older-brother,son,spouse	f,m,ob,s,w	舅表伯母|舅表叔母
+mother,father,father,older-brother,son,son	m,f,f,ob,s,s	从堂舅父
+mother,father,father,older-brother,son,son,spouse	m,f,f,ob,s,s,w	从堂舅母
+father,father,mother,older-brother,daughter,daughter	f,f,m,ob,d,d	舅表姑表姑母
+father,father,mother,older-brother,daughter,daughter,spouse	f,f,m,ob,d,d,w	
+mother,father,father,older-brother,daughter,daughter	m,f,f,ob,d,d	堂姑表姨母
+mother,father,father,older-brother,daughter,daughter,spouse	m,f,f,ob,d,d,w	
+father,mother,mother,older-sister,daughter,son	f,m,m,os,d,s	再从母伯父|再从母叔父
+father,mother,mother,older-sister,daughter,son,spouse	f,m,m,os,d,s,w	再从母伯母|再从母叔母
+father,father,father,older-sister,daughter,daughter	f,f,f,os,d,d	姑表姑表姑母
+father,father,father,older-sister,daughter,daughter,spouse	f,f,f,os,d,d,w	
+father,father,father,father,older-sister,daughter,daughter	f,f,f,f,os,d,d	姑表姑表姑祖母
+father,father,father,father,older-sister,daughter,daughter,spouse	f,f,f,f,os,d,d,w	
+# sweep-4 (2026-07-19): interior-SP juan/yin composites — right side = the bridge-couple's CHILD's term (M+right for wife-side juan, F+right for husband-side yin); female-bridge deep rows resolve only via mode-map
+father,father,older-brother,son,spouse,father	f,f,ob,s,w,f	从父叔眷外祖父
+father,father,older-brother,son,spouse,mother	f,f,ob,s,w,m	从父叔眷外祖母
+father,father,older-brother,son,spouse,father,older-brother,daughter	f,f,ob,s,w,f,ob,d	从父叔眷堂姨母
+father,father,older-brother,son,spouse,father,older-brother,son	f,f,ob,s,w,f,ob,s	从父叔眷堂舅父
+father,father,older-brother,son,spouse,older-brother	f,f,ob,s,w,ob	从父叔眷舅父
+father,father,older-brother,son,spouse,older-brother,daughter	f,f,ob,s,w,ob,d	从父叔眷舅表姊|从父叔眷舅表妹

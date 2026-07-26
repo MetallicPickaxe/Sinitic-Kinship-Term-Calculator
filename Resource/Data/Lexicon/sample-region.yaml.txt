@@ -1,0 +1,33 @@
+# =============================================================================
+#  Sample custom lexicon layer.
+#
+#  To use it: copy this file into the `Lexicon` folder next to the executable,
+#  rename it to end in `.yaml` (e.g. `dialect-mine.yaml`), and edit. The engine
+#  loads every `*.yaml` in that folder on start-up. This `.txt` template is
+#  inert — it is shipped only as a starting point and is never loaded as-is.
+#
+#  A layer does one of two jobs, or both:
+#    - `entries`  : supply a STANDARD term the engine cannot derive, keyed by
+#                   relation chain + your gender (rare; usually only the base
+#                   layer needs this).
+#    - `variants` : register alternate spellings AGAINST a standard form. This
+#                   is what a regional/colloquial layer normally does. The
+#                   standard term always stays the primary answer; your variants
+#                   appear as tagged candidates.
+#
+#  Reusing an `id` that a built-in layer already uses REPLACES that layer.
+#  A fresh `id` stacks alongside the built-ins.
+# =============================================================================
+
+meta:
+  id: dialect-mine          # unique; reuse a built-in id to override it
+  name: My Region           # shown on the candidate chip, e.g. "大爹爹 · My Region"
+  layer: dialect            # base | register | dialect
+  region: (describe it)
+  default_enabled: true
+
+# key   = the standard form the engine produces
+# value = one or more local spellings for that same person
+variants:
+  伯祖父: [大爹爹]
+  外祖母: [阿嫲]

@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="YamlDotNet" Version="16.3.0" />
+	</ItemGroup>
+
+	<!--
+		K15/K16 lexicon layers. EMBEDDED, not copied: the single-file publish extracts to a
+		%TEMP% directory, so a BaseDirectory walk-up cannot find loose data files there.
+		User-supplied layers are read from a `Lexicon` folder beside the executable instead.
+	-->
+	<ItemGroup>
+		<EmbeddedResource Include="..\Resource\Data\Lexicon\*.yaml" LogicalName="Lexicon.%(Filename)%(Extension)" />
+	</ItemGroup>
+
+</Project>

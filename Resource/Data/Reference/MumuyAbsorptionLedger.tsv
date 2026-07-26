@@ -1,0 +1,105 @@
+chain_symbol_path	verdict	reason	absorbed_terms_with_tags
+D.D.D.D	reject	mumuy 逐女性節點疊「外」之機器合成形(外曾外曾外孙女);本系統採語料庫首位+遲位雙槽慣例(外玄孫女)
+D.D.D.D.SP	reject	同 D.D.D.D:疊外合成形不採信,配偶閉包不改動外字槽位
+D.D.D.S	reject	同 D.D.D.D
+D.D.D.S.SP	reject	同 D.D.D.D
+D.D.S.D	reject	mumuy 疊外合成形(外曾外曾孙女);中位過女點依雙槽慣例不標
+D.D.S.D.SP	reject	同 D.D.S.D
+D.D.S.S	reject	同 D.D.S.D
+D.D.S.S.SP	reject	同 D.D.S.D
+S.D.D.D	reject	mumuy 疊外合成形(曾外曾外孙女);本系統遲位單標(玄外孫女)
+S.D.D.D.SP	reject	同 S.D.D.D
+S.D.D.S	reject	同 S.D.D.D
+S.D.D.S.SP	reject	同 S.D.D.D
+S.D.S.D	reject	mumuy 疊外合成形(曾外曾孙女);中位過女點依雙槽慣例不標(玄孫女)
+S.D.S.D.SP	reject	同 S.D.S.D
+S.D.S.S	reject	同 S.D.S.D
+S.D.S.S.SP	reject	同 S.D.S.D
+S.S.S.S.S.S.S.D.D	reject	爾雅世代階梯止於雲孫(8代);「耳孫」古籍為遠孫泛稱非精確第9代;本系統以 N代孫 有界回退	耳孙(泛稱;literary)
+S.S.S.S.S.S.S.D.D.SP	reject	同上:偽階梯不採信
+S.S.S.S.S.S.S.D.S	reject	同上	耳孙(泛稱;literary)
+S.S.S.S.S.S.S.D.S.SP	reject	同上
+S.S.S.S.S.S.S.S.D	reject	同上	耳孙(泛稱;literary)
+S.S.S.S.S.S.S.S.D.D	reject	「彌孫」為後造延伸,無經典依據;彌甥(姊妹之孫)另有其位
+S.S.S.S.S.S.S.S.D.D.SP	reject	同上
+S.S.S.S.S.S.S.S.D.S	reject	同上
+S.S.S.S.S.S.S.S.D.S.SP	reject	同上
+S.S.S.S.S.S.S.S.D.SP	reject	耳孫系偽階梯不採信
+S.S.S.S.S.S.S.S.S.D	reject	彌孫系偽階梯不採信
+S.S.S.S.S.S.S.S.S.D.D	reject	「胎孫」為後造延伸,無經典依據
+S.S.S.S.S.S.S.S.S.D.D.SP	reject	同上
+S.S.S.S.S.S.S.S.S.D.S	reject	同上
+S.S.S.S.S.S.S.S.S.D.S.SP	reject	同上
+S.S.S.S.S.S.S.S.S.D.SP	reject	彌孫系偽階梯不採信
+S.S.S.S.S.S.S.S.S.S.D	reject	胎孫系偽階梯不採信
+S.S.S.S.S.S.S.S.S.S.D.D	reject	「承孫」為後造延伸,無經典依據
+S.S.S.S.S.S.S.S.S.S.D.D.SP	reject	同上
+S.S.S.S.S.S.S.S.S.S.D.S	reject	同上
+S.S.S.S.S.S.S.S.S.S.D.S.SP	reject	同上
+S.S.S.S.S.S.S.S.S.S.D.SP	reject	胎孫系偽階梯不採信
+S.S.S.S.S.S.S.S.S.S.S.D	reject	承孫系偽階梯不採信
+S.S.S.S.S.S.S.S.S.S.S.D.SP	reject	同上
+S.S.S.S.S.S.S.S.S.S.S.S.SP	reject	同上
+S.S.S.S.S.S.S.S.S.S.S.SP	reject	胎孫系偽階梯不採信
+S.S.S.S.S.S.S.S.S.S.SP	reject	彌孫系偽階梯不採信
+S.S.S.S.S.S.S.S.S.SP	reject	耳孫系偽階梯不採信
+D.SP.F.F	absorb	傳統姻誼書面稱謂體系(禮帖層);本系統輸出描述回退,詞條收編掛牌	姻伯(literary;liter-greeting)|姻叔(literary;liter-greeting)
+D.SP.OB.D	absorb	姻誼書面體系收編	姻侄孙女(literary;liter-greeting)
+D.SP.OB.S	absorb	姻誼書面體系收編	姻侄孙(literary;liter-greeting)
+D.SP.OB.SP	absorb	姻誼書面體系收編	姻侄媳(literary;liter-greeting)
+D.SP.OS.D	absorb	姻誼書面體系收編	姻侄外孙女(literary;liter-greeting)
+D.SP.OS.S	absorb	姻誼書面體系收編	姻侄外孙(literary;liter-greeting)
+D.SP.OS.SP	absorb	姻誼書面體系收編	姻侄婿(literary;liter-greeting)
+D.SP.YB.D	absorb	姻誼書面體系收編	姻侄孙女(literary;liter-greeting)
+D.SP.YB.S	absorb	姻誼書面體系收編	姻侄孙(literary;liter-greeting)
+D.SP.YB.SP	absorb	姻誼書面體系收編	姻侄媳(literary;liter-greeting)
+D.SP.YS.D	absorb	姻誼書面體系收編	姻侄外孙女(literary;liter-greeting)
+D.SP.YS.S	absorb	姻誼書面體系收編	姻侄外孙(literary;liter-greeting)
+D.SP.YS.SP	absorb	姻誼書面體系收編	姻侄婿(literary;liter-greeting)
+S.SP.F.F	absorb	姻誼書面體系收編	姻伯(literary;liter-greeting)|姻叔(literary;liter-greeting)
+S.SP.OB.D	absorb	姻誼書面體系收編	姻侄孙女(literary;liter-greeting)
+S.SP.OB.S	absorb	姻誼書面體系收編	姻侄孙(literary;liter-greeting)
+S.SP.OB.SP	absorb	姻誼書面體系收編	姻侄媳(literary;liter-greeting)
+S.SP.OS.D	absorb	姻誼書面體系收編	姻侄外孙女(literary;liter-greeting)
+S.SP.OS.S	absorb	姻誼書面體系收編	姻侄外孙(literary;liter-greeting)
+S.SP.OS.SP	absorb	姻誼書面體系收編	姻侄婿(literary;liter-greeting)
+S.SP.YB.D	absorb	姻誼書面體系收編	姻侄孙女(literary;liter-greeting)
+S.SP.YB.S	absorb	姻誼書面體系收編	姻侄孙(literary;liter-greeting)
+S.SP.YB.SP	absorb	姻誼書面體系收編	姻侄媳(literary;liter-greeting)
+S.SP.YS.D	absorb	姻誼書面體系收編	姻侄外孙女(literary;liter-greeting)
+S.SP.YS.S	absorb	姻誼書面體系收編	姻侄外孙(literary;liter-greeting)
+S.SP.YS.SP	absorb	姻誼書面體系收編	姻侄婿(literary;liter-greeting)
+SP.F.F.OB.S	absorb	姻誼書面體系收編;本系統輸出岳形/隨稱	姻伯丈(literary;liter-greeting)|姻叔丈(literary;liter-greeting)
+SP.F.F.OB.S.SP	absorb	姻誼書面體系收編	姻姆(literary;liter-greeting)|姻婶(literary;liter-greeting)
+SP.F.F.YB.S	absorb	姻誼書面體系收編	姻伯丈(literary;liter-greeting)|姻叔丈(literary;liter-greeting)
+SP.F.F.YB.S.SP	absorb	姻誼書面體系收編	姻姆(literary;liter-greeting)|姻婶(literary;liter-greeting)
+SP.F.OB.SP	absorb	配偶側旁系口語體系(公婆/姆系)收編;引擎現以描述回退,後續擴充	伯婆(colloquial)|姆婆(dialect)|伯姆(dialect)|伯岳母(yue-form)
+SP.F.OS	absorb	配偶側旁系口語體系收編;我方「姑岳母」為構造形 —— K10 已定案(2026-07-23):與 mumuy 姑岳父母-族判定一致,南系口語 姑婆 移入 dialect-south 層	姑婆(colloquial)|姑婆婆(colloquial)|婆婆姑(dialect)
+SP.F.OS.SP	absorb	配偶側旁系口語體系收編	姑公(colloquial)|姑公公(colloquial)|婆婆姑夫(dialect)
+SP.F.YB.SP	absorb	配偶側旁系口語體系收編	叔婆(colloquial)|婶婆(colloquial)|叔岳母(yue-form)
+SP.F.YS	absorb	配偶側旁系口語體系收編;我方「姑岳母」為構造形 —— K10 已定案(2026-07-23):與 mumuy 姑岳父母-族判定一致,南系口語 姑婆 移入 dialect-south 層	姑婆(colloquial)|姑婆婆(colloquial)
+SP.F.YS.SP	absorb	配偶側旁系口語體系收編	姑公(colloquial)|姑公公(colloquial)
+SP.M.OB	absorb	配偶側旁系口語體系收編;我方「舅岳父」為構造形 —— K10 已定案(2026-07-23):與 mumuy 舅岳父母-族判定一致,南系口語 舅公 移入 dialect-south 層	舅公(colloquial)|舅公公(colloquial)
+SP.M.OB.SP	absorb	配偶側旁系口語體系收編	舅婆(colloquial)|妗婆婆(dialect)|舅婆婆(colloquial)
+SP.M.OS	absorb	配偶側旁系口語體系收編;我方「姨岳母」為構造形 —— K10 已定案(2026-07-23):與 mumuy 姨岳父母-族判定一致,南系口語 姨婆 移入 dialect-south 層	姨婆(colloquial)|姨婆婆(colloquial)
+SP.M.OS.SP	absorb	配偶側旁系口語體系收編	姨公(colloquial)|姨公公(colloquial)
+SP.M.YB	absorb	配偶側旁系口語體系收編;我方「舅岳父」為構造形 —— K10 已定案(2026-07-23):與 mumuy 舅岳父母-族判定一致,南系口語 舅公 移入 dialect-south 層	舅公(colloquial)|舅公公(colloquial)
+SP.M.YB.SP	absorb	配偶側旁系口語體系收編	舅婆(colloquial)|妗婆婆(dialect)
+SP.M.YS	absorb	配偶側旁系口語體系收編;我方「姨岳母」為構造形 —— K10 已定案(2026-07-23):與 mumuy 姨岳父母-族判定一致,南系口語 姨婆 移入 dialect-south 層	姨婆(colloquial)|姨婆婆(colloquial)
+SP.M.YS.SP	absorb	配偶側旁系口語體系收編	姨公(colloquial)|姨公公(colloquial)
+SP.OB.D	absorb	配偶兄弟姊妹之子女稱謂收編;我方以內姪/姪隨稱	叔侄女(colloquial)|舅侄女(colloquial)
+SP.OB.S	absorb	同 SP.OB.D	叔侄(colloquial)|舅侄(colloquial)
+SP.YB.D	absorb	同 SP.OB.D	叔侄女(colloquial)|舅侄女(colloquial)
+SP.YB.S	absorb	同 SP.OB.D	叔侄(colloquial)|舅侄(colloquial)
+SP.OB.SP	absorb	妯娌/舅嫂口語大系收編;我方隨稱(男:舅嫂/女:嫂子)	大伯嫂(colloquial)|姆姆(dialect)|大妗子(north)|妯娌系(family)
+SP.YB.SP	absorb	妯娌/舅嫂口語大系收編	小婶子(north)|娣妇(literary)|小妗子(north)|妯娌系(family)
+SP.OS.SP	absorb	連襟大系收編;我方隨稱(姐夫)	连襟(colloquial)|襟兄(literary)|一担挑(north)|连桥(dialect)
+SP.YS.SP	absorb	連襟大系收編;我方隨稱(妹夫)	连襟(colloquial)|襟弟(literary)|老挑(north)
+SP.F.F.F.OB	absorb	配偶側深旁系:mumuy 僅列公婆側形(伯曾祖公系),岳形未列;我方輸出符合隨夫稱/岳形約定	伯曾祖公父(spouse-side;suicheng)|太伯翁(literary)
+SP.F.F.F.OB.SP	absorb	同 SP.F.F.F.OB	伯曾祖婆母(spouse-side;suicheng)|太姆婆(dialect)
+SP.F.F.F.OS	absorb	同 SP.F.F.F.OB	姑曾祖婆母(spouse-side;suicheng)
+SP.F.F.F.OS.SP	absorb	同 SP.F.F.F.OB	姑曾祖公父(spouse-side;suicheng)
+SP.F.F.F.YB	absorb	同 SP.F.F.F.OB	叔曾祖公父(spouse-side;suicheng)|太叔翁(literary)
+SP.F.F.F.YB.SP	absorb	同 SP.F.F.F.OB	叔曾祖婆母(spouse-side;suicheng)|太婶婆(dialect)
+SP.F.F.F.YS	absorb	同 SP.F.F.F.OB	姑曾祖婆母(spouse-side;suicheng)
+SP.F.F.F.YS.SP	absorb	同 SP.F.F.F.OB	姑曾祖公父(spouse-side;suicheng)

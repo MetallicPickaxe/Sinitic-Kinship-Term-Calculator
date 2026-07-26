@@ -1,0 +1,11 @@
+kind	value	note
+literal	妻儿	wife-and-children group noun (mode-map wildcard rows)
+literal	妻小	wife-and-children group noun
+literal	儿女	children group noun
+literal	子女	children group noun
+literal	儿孙	descendants group noun
+literal	子孙	descendants group noun
+literal	孙息	grandchildren group noun
+literal	孙枝	grandchildren group noun
+suffix	子女	X子女 family: 侄子女/甥子女/孙子女/外孙子女/妻侄子女/夫甥子女 …
+suffix	辈	N辈 family: 祖辈/曾祖辈/孙辈 …

@@ -1,0 +1,11 @@
+# 產品面語言:繁體優先(操作者裁示 2026-07-23 —— 命名與介面用繁體漢字,英文並列)。
+# 清單首項即預設值(MainViewModel 取 Languages.First())。
+Languages:
+  - Key: zh-Hant
+    Display: 繁體中文
+  - Key: zh-Hans
+    Display: 简体中文
+  - Key: en
+    Display: English
+
+StartingRole: self

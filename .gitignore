@@ -1,0 +1,34 @@
+# Build output
+.vs/
+obj/
+bin/
+cache/
+*.user
+*.cache
+*.log
+~$*.xlsx
+
+# Release artifacts. The single-file exe belongs on GitHub Releases, not in the tree; the
+# Lexicon folder is regenerated beside it on every publish.
+Distribution/
+
+# The public mirror lives in Publish/ as its own repository; never nest it inside this one.
+Publish/
+
+# === Large development-only data, not tracked ===
+# The product (KinshipCalculator.Core + UI) reads only Resource/Data/Lexicon/*.yaml, which
+# is embedded in the assembly. Everything below is comparison/verification scaffolding that
+# the shipped exe never needs.
+#
+# mumuy source data (MIT, see ATTRIBUTION.md). Our engine is generative and does not consult
+# its table; these are needed only to re-run the local comparison. ~47 MB.
+Utility/MumuyAlgorithm/Data/mode-map.json
+Utility/MumuyAlgorithm/Data/cache.json
+Utility/MumuyAlgorithm/Data/kinship_terms.yaml
+
+# The 90k comparison face (TSV 72.9 MB / XLSX 10.7 MB) is a derived product, regenerable via
+# Utility/Scripts/Run-ValidationLoop.ps1. The 438-row main face (MumuyMainAccuracyCompact.*)
+# is the hand-adjudicated safety net and stays tracked.
+Resource/Data/Reference/MumuyModeMapAccuracyCompact.tsv
+Resource/Data/Reference/MumuyModeMapAccuracyCompact.xlsx
+Resource/Data/Reference/MumuyModeMapAccuracyCompact.Unsupported.tsv

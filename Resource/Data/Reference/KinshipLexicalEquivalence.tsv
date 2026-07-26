@@ -1,0 +1,206 @@
+variant	canonical	tags	note
+姑婆	姑奶奶	colloquial;south	grand-collateral composed daily form (K8)
+舅公	舅爷爷	colloquial;south	grand-collateral composed daily form (K8)
+姨婆	姨奶奶	colloquial;south	grand-collateral composed daily form (K8)
+姨公	姨爷爷	colloquial;south	grand-collateral composed daily form (K8)
+爷爷	祖父	colloquial;north	legacy map migration
+奶奶	祖母	colloquial;north	legacy map migration
+姥姥	外祖母	colloquial;north	legacy map migration
+姥爷	外祖父	colloquial;north	legacy map migration
+大伯父	大爷	colloquial;north	legacy map migration
+伯父	大爷	colloquial;north	legacy map migration
+大伯母	大妈	colloquial;north	legacy map migration
+二伯母	二大妈	colloquial;north	legacy map migration
+婶婶	婶母	colloquial	legacy map migration
+婶儿	婶母	colloquial;north	legacy map migration
+伯外公	外伯祖父	colloquial	legacy map migration (R0007)
+伯外婆	外伯祖母	colloquial	legacy map migration (R0007)
+叔外公	外叔祖父	colloquial	legacy map migration (R0007)
+叔外婆	外叔祖母	colloquial	legacy map migration (R0007)
+姑外公	外姑祖父	colloquial	legacy map migration (R0007)
+姑外婆	外姑祖母	colloquial	legacy map migration (R0007)
+伯公	伯祖父	colloquial;south	grand-uncle family
+伯祖	伯祖父	literary	grand-uncle family
+伯翁	伯祖父	literary	grand-uncle family
+大爷爷	伯祖父	colloquial;north	grand-uncle family
+大公	伯祖父	dialect	grand-uncle family
+大阿爷	伯祖父	dialect;wu-yue	grand-uncle family
+大嗲	伯祖父	dialect;xiang	grand-uncle family
+叔公	叔祖父	colloquial;south	grand-uncle family
+叔祖	叔祖父	literary	grand-uncle family
+叔翁	叔祖父	literary	grand-uncle family
+小爷爷	叔祖父	colloquial;north	grand-uncle family
+晚公	叔祖父	dialect	grand-uncle family
+幺爷	叔祖父	dialect;southwest	grand-uncle family
+细嗲	叔祖父	dialect;xiang	grand-uncle family
+伯婆	伯祖母	colloquial;south	grand-aunt family
+姆婆	伯祖母	dialect;min-hakka	grand-aunt family
+大奶奶	伯祖母	colloquial;north	grand-aunt family
+伯娭毑	伯祖母	dialect;xiang	grand-aunt family
+叔婆	叔祖母	colloquial;south	grand-aunt family
+婶婆	叔祖母	colloquial	grand-aunt family
+小奶奶	叔祖母	colloquial;north	grand-aunt family
+叔娭毑	叔祖母	dialect;xiang	grand-aunt family
+晚婆	叔祖母	dialect	grand-aunt family
+幺奶	叔祖母	dialect;southwest	grand-aunt family
+姑奶奶	姑祖母	colloquial;north	grand-aunt family
+祖姑	姑祖母	literary	grand-aunt family
+姑奶	姑祖母	colloquial	grand-aunt family
+恩婆	姑祖母	dialect	grand-aunt family
+姑娭毑	姑祖母	dialect;xiang	grand-aunt family
+姑爷爷	姑祖父	colloquial;north	grand-uncle-in-law family
+祖姑丈	姑祖父	literary	grand-uncle-in-law family
+恩爹	姑祖父	dialect	grand-uncle-in-law family
+姑丈公	姑祖父	dialect;min-yue	grand-uncle-in-law family
+舅爷爷	舅祖父	colloquial;north	maternal grand-uncle family
+舅祖	舅祖父	literary	maternal grand-uncle family
+舅爹	舅祖父	dialect	maternal grand-uncle family
+太舅父	舅祖父	literary	maternal grand-uncle family
+大舅爷	舅祖父	colloquial;north;rank	maternal grand-uncle family
+小舅爷	舅祖父	colloquial;north;rank	maternal grand-uncle family
+大舅爹	舅祖父	dialect;rank	maternal grand-uncle family
+小舅爹	舅祖父	dialect;rank	maternal grand-uncle family
+舅奶奶	舅祖母	colloquial;north	maternal grand-aunt family
+妗婆	舅祖母	dialect;jin-zhongyuan	maternal grand-aunt family
+舅婆	舅祖母	colloquial	maternal grand-aunt family
+妗奶	舅祖母	dialect	maternal grand-aunt family
+太舅母	舅祖母	literary	maternal grand-aunt family
+大舅婆	舅祖母	colloquial;rank	maternal grand-aunt family
+小舅婆	舅祖母	colloquial;rank	maternal grand-aunt family
+姨奶奶	姨祖母	colloquial;north	maternal grand-aunt family
+姨奶	姨祖母	colloquial	maternal grand-aunt family
+姨娭毑	姨祖母	dialect;xiang	maternal grand-aunt family
+姨爷爷	姨祖父	colloquial;north	maternal grand-uncle-in-law family
+姨公公	姨祖父	colloquial;south	maternal grand-uncle-in-law family
+姨爹	姨祖父	dialect	maternal grand-uncle-in-law family
+姨丈公	姨祖父	dialect;min-yue	maternal grand-uncle-in-law family
+舅外公	外舅祖父	colloquial	maternal-line grand-uncle (R0007 pattern)
+舅外婆	外舅祖母	colloquial	maternal-line grand-aunt
+妗姥姥	外舅祖母	colloquial;north	maternal-line grand-aunt
+妗姥娘	外舅祖母	dialect;north	maternal-line grand-aunt
+妗姥	外舅祖母	dialect;north	maternal-line grand-aunt
+外妗婆	外舅祖母	dialect	maternal-line grand-aunt
+姨外婆	外姨祖母	colloquial	maternal-line grand-aunt
+姨外公	外姨祖父	colloquial	maternal-line grand-uncle-in-law
+外姨丈公	外姨祖父	dialect;min-yue	maternal-line grand-uncle-in-law
+九世孙	8代孙	literary;count-alias	世-count = 代-count + 1
+十世孙	9代孙	literary;count-alias	世-count = 代-count + 1
+十一世孙	10代孙	literary;count-alias	世-count = 代-count + 1
+十二世孙	11代孙	literary;count-alias	世-count = 代-count + 1
+祖公父	祖父	spouse-side;suicheng	husband's grandfather (隨夫稱)
+祖公	祖父	spouse-side;suicheng	husband's grandfather (隨夫稱)
+祖公公	祖父	spouse-side;suicheng	husband's grandfather (隨夫稱)
+祖翁	祖父	spouse-side;literary	husband's grandfather (隨夫稱)
+奶公父	祖父	spouse-side;north	husband's grandfather (隨夫稱)
+祖岳父	岳祖父	spouse-side;yue-form	wife's grandfather
+太岳父	岳祖父	spouse-side;yue-form	wife's grandfather
+奶岳父	岳祖父	spouse-side;north	wife's grandfather
+祖丈人	岳祖父	spouse-side	wife's grandfather
+爷丈人	岳祖父	spouse-side;north	wife's grandfather
+奶爷丈人	岳祖父	spouse-side;north	wife's grandfather
+奶丈爷	岳祖父	spouse-side;north	wife's grandfather
+奶丈人	岳祖父	spouse-side;north	wife's grandfather
+祖婆母	祖母	spouse-side;suicheng	husband's grandmother (隨夫稱)
+祖婆	祖母	spouse-side;suicheng	husband's grandmother (隨夫稱)
+祖婆婆	祖母	spouse-side;suicheng	husband's grandmother (隨夫稱)
+奶婆母	祖母	spouse-side;north	husband's grandmother (隨夫稱)
+祖岳母	岳祖母	spouse-side;yue-form	wife's grandmother
+太岳母	岳祖母	spouse-side;yue-form	wife's grandmother
+奶岳母	岳祖母	spouse-side;north	wife's grandmother
+祖丈母	岳祖母	spouse-side	wife's grandmother
+祖丈母娘	岳祖母	spouse-side	wife's grandmother
+奶丈母娘	岳祖母	spouse-side;north	wife's grandmother
+奶丈姥	岳祖母	spouse-side;north	wife's grandmother
+奶丈母	岳祖母	spouse-side;north	wife's grandmother
+老丈姥	岳祖母	spouse-side;north	wife's grandmother
+老丈娘	岳外祖母	spouse-side;north	wife's maternal grandmother
+曾祖公父	曾祖父	spouse-side;suicheng	husband's great-grandfather
+曾祖公	曾祖父	spouse-side;suicheng	husband's great-grandfather
+太公翁	曾祖父	spouse-side;literary	husband's great-grandfather
+曾祖岳父	岳曾祖父	spouse-side;yue-form	wife's great-grandfather
+曾祖丈人	岳曾祖父	spouse-side	wife's great-grandfather
+太爷丈人	岳曾祖父	spouse-side;north	wife's great-grandfather
+祖爷丈人	岳曾祖父	spouse-side;north	wife's great-grandfather
+曾祖婆母	曾祖母	spouse-side;suicheng	husband's great-grandmother
+曾祖婆	曾祖母	spouse-side;suicheng	husband's great-grandmother
+太奶亲	曾祖母	spouse-side;north	husband's great-grandmother
+曾祖岳母	岳曾祖母	spouse-side;yue-form	wife's great-grandmother
+曾祖丈母	岳曾祖母	spouse-side	wife's great-grandmother
+曾祖丈母娘	岳曾祖母	spouse-side	wife's great-grandmother
+祖奶丈母娘	岳曾祖母	spouse-side;north	wife's great-grandmother
+太奶丈母娘	岳曾祖母	spouse-side;north	wife's great-grandmother
+伯曾祖公父	伯曾祖父	spouse-side;suicheng	husband's collateral great-grandfather
+伯曾祖公	伯曾祖父	spouse-side;suicheng	husband's collateral great-grandfather
+太伯翁	伯曾祖父	spouse-side;literary	husband's collateral great-grandfather
+伯曾祖婆母	伯曾祖母	spouse-side;suicheng	husband's collateral great-grandmother
+伯曾祖婆	伯曾祖母	spouse-side;suicheng	husband's collateral great-grandmother
+太姆婆	伯曾祖母	spouse-side;dialect	husband's collateral great-grandmother
+叔曾祖公父	叔曾祖父	spouse-side;suicheng	husband's collateral great-grandfather
+叔曾祖公	叔曾祖父	spouse-side;suicheng	husband's collateral great-grandfather
+太叔翁	叔曾祖父	spouse-side;literary	husband's collateral great-grandfather
+叔曾祖婆母	叔曾祖母	spouse-side;suicheng	husband's collateral great-grandmother
+叔曾祖婆	叔曾祖母	spouse-side;suicheng	husband's collateral great-grandmother
+太婶婆	叔曾祖母	spouse-side;dialect	husband's collateral great-grandmother
+姑曾祖婆母	姑曾祖母	spouse-side;suicheng	husband's collateral great-grandaunt
+姑曾祖婆	姑曾祖母	spouse-side;suicheng	husband's collateral great-grandaunt
+姑曾祖公父	姑曾祖父	spouse-side;suicheng	husband's collateral great-granduncle
+曾外祖公父	曾外祖父	spouse-side;suicheng	husband's maternal great-grandfather
+曾外祖公	曾外祖父	spouse-side;suicheng	husband's maternal great-grandfather
+曾外祖岳父	岳曾外祖父	spouse-side;yue-form	wife's maternal great-grandfather
+曾外祖丈人	岳曾外祖父	spouse-side	wife's maternal great-grandfather
+太姥爷丈	岳曾外祖父	spouse-side;north	wife's maternal great-grandfather
+曾外祖婆母	曾外祖母	spouse-side;suicheng	husband's maternal great-grandmother
+曾外祖婆	曾外祖母	spouse-side;suicheng	husband's maternal great-grandmother
+曾外祖岳母	岳曾外祖母	spouse-side;yue-form	wife's maternal great-grandmother
+曾外祖丈母	岳曾外祖母	spouse-side	wife's maternal great-grandmother
+曾外祖丈母娘	岳曾外祖母	spouse-side	wife's maternal great-grandmother
+外祖公父	外祖父	spouse-side;suicheng	husband's maternal grandfather
+毑公父	外祖父	spouse-side;xiang	husband's maternal grandfather
+外祖公	外祖父	spouse-side;suicheng	husband's maternal grandfather
+外祖公公	外祖父	spouse-side;suicheng	husband's maternal grandfather
+姥公父	外祖父	spouse-side;north	husband's maternal grandfather
+姥公	外祖父	spouse-side;north	husband's maternal grandfather
+外祖岳父	岳外祖父	spouse-side;yue-form	wife's maternal grandfather
+毑岳父	岳外祖父	spouse-side;xiang	wife's maternal grandfather
+外祖丈人爹	岳外祖父	spouse-side	wife's maternal grandfather
+外祖丈人	岳外祖父	spouse-side	wife's maternal grandfather
+外太岳父	岳外祖父	spouse-side	wife's maternal grandfather
+姥岳父	岳外祖父	spouse-side;north	wife's maternal grandfather
+姥丈爷	岳外祖父	spouse-side;north	wife's maternal grandfather
+姥丈人	岳外祖父	spouse-side;north	wife's maternal grandfather
+姥丈人爹	岳外祖父	spouse-side;north	wife's maternal grandfather
+姥爷丈人	岳外祖父	spouse-side;north	wife's maternal grandfather
+外祖婆母	外祖母	spouse-side;suicheng	husband's maternal grandmother
+毑婆母	外祖母	spouse-side;xiang	husband's maternal grandmother
+外祖婆	外祖母	spouse-side;suicheng	husband's maternal grandmother
+外祖婆婆	外祖母	spouse-side;suicheng	husband's maternal grandmother
+姥婆母	外祖母	spouse-side;north	husband's maternal grandmother
+姥婆	外祖母	spouse-side;north	husband's maternal grandmother
+外祖岳母	岳外祖母	spouse-side;yue-form	wife's maternal grandmother
+毑岳母	岳外祖母	spouse-side;xiang	wife's maternal grandmother
+外祖丈母娘	岳外祖母	spouse-side	wife's maternal grandmother
+外祖丈母	岳外祖母	spouse-side	wife's maternal grandmother
+外太岳母	岳外祖母	spouse-side	wife's maternal grandmother
+姥岳母	岳外祖母	spouse-side;north	wife's maternal grandmother
+姥丈姥	岳外祖母	spouse-side;north	wife's maternal grandmother
+姥丈母	岳外祖母	spouse-side;north	wife's maternal grandmother
+姥丈母娘	岳外祖母	spouse-side;north	wife's maternal grandmother
+外曾祖公父	外曾祖父	spouse-side;suicheng	husband's deep maternal ancestor
+外曾祖公	外曾祖父	spouse-side;suicheng	husband's deep maternal ancestor
+外曾祖岳父	岳外曾祖父	spouse-side;yue-form	wife's deep maternal ancestor
+外曾祖丈人	岳外曾祖父	spouse-side	wife's deep maternal ancestor
+外曾祖婆母	外曾祖母	spouse-side;suicheng	husband's deep maternal ancestor
+外曾祖婆	外曾祖母	spouse-side;suicheng	husband's deep maternal ancestor
+外曾祖岳母	岳外曾祖母	spouse-side;yue-form	wife's deep maternal ancestor
+外曾祖丈母	岳外曾祖母	spouse-side	wife's deep maternal ancestor
+外曾外祖公父	外曾外祖父	spouse-side;suicheng	husband's deep maternal ancestor
+外曾外祖公	外曾外祖父	spouse-side;suicheng	husband's deep maternal ancestor
+外曾外祖岳父	岳外曾外祖父	spouse-side;yue-form	wife's deep maternal ancestor
+外曾外祖丈人	岳外曾外祖父	spouse-side	wife's deep maternal ancestor
+外曾外祖婆母	外曾外祖母	spouse-side;suicheng	husband's deep maternal ancestor
+外曾外祖婆	外曾外祖母	spouse-side;suicheng	husband's deep maternal ancestor
+外曾外祖岳母	岳外曾外祖母	spouse-side;yue-form	wife's deep maternal ancestor
+外曾外祖丈母	岳外曾外祖母	spouse-side	wife's deep maternal ancestor
+外曾外祖丈母娘	岳外曾外祖母	spouse-side	wife's deep maternal ancestor
+族婶	族叔母	colloquial	graded junior spouse (嬸=叔母)
+从婶	从叔母	colloquial	graded junior spouse (嬸=叔母)

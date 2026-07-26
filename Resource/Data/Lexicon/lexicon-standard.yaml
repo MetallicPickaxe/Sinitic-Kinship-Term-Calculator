@@ -1,0 +1,38 @@
+# 標準漢語 · 不可構詞稱謂(irregular lexemes)
+#
+# 收錄準則:標準漢語通行、但【構詞機推導不出】的稱謂 —— 例如 公公/婆婆/岳父/岳母/亲家公。
+# 可推導者(伯祖父 = 伯+祖+父、外曾祖母 = 外+曾+祖+母)一律不入本檔,由引擎現算。
+#
+# 鍵 = 關係鏈(chain key);值依 ego 性別分。其餘各層(口語/方言)以【本檔定出的標準形】為鍵。
+meta:
+  id: lexicon-standard
+  name: 標準漢語
+  layer: base
+  provenance: 通行標準漢語稱謂,非採自任何單一地方來源
+  note: 本層恆為主位;移除本層將使相關關係退回描述式回退
+
+entries:
+  - key: SP.F
+    male: 岳父
+    female: 公公
+    gloss: 配偶之父
+  - key: SP.M
+    male: 岳母
+    female: 婆婆
+    gloss: 配偶之母
+  - key: S.SP.F
+    male: 亲家公
+    female: 亲家公
+    gloss: 兒媳之父
+  - key: S.SP.M
+    male: 亲家母
+    female: 亲家母
+    gloss: 兒媳之母
+  - key: D.SP.F
+    male: 亲家公
+    female: 亲家公
+    gloss: 女婿之父
+  - key: D.SP.M
+    male: 亲家母
+    female: 亲家母
+    gloss: 女婿之母

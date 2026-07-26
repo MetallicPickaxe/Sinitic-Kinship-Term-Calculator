@@ -1,0 +1,32 @@
+<Solution>
+  <Configurations>
+    <Platform Name="ARM64" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
+  <Project Path="KinshipCalculator.Core/KinshipCalculator.Core.csproj" />
+  <Project Path="Utility/MumuyAlgorithm/MumuyAlgorithm.csproj" />
+  <Project Path="Utility/ReferenceAccuracyExporter/ReferenceAccuracyExporter.csproj" />
+  <Project Path="Test-Verification/Test-Verification.csproj" />
+  <Project Path="Test-Unit/Test-Unit.csproj" Id="88fb3a1b-39c8-4bff-9678-fff5c09b490f">
+    <Platform Solution="*|ARM64" Project="ARM64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+    <Deploy />
+  </Project>
+  <Project Path="Test/Test-UI.csproj">
+    <Platform Solution="*|ARM64" Project="ARM64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+    <Deploy />
+  </Project>
+  <Project Path="UI/UI.csproj" Id="6787dbdf-8eca-4a04-8b88-5e0373640a82">
+    <Platform Solution="*|ARM64" Project="ARM64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+    <Deploy />
+  </Project>
+</Solution>
