@@ -145,7 +145,7 @@ finite set and stops; we compute past its edge, mark the boundary plainly (a des
 |---|---|---|
 | Unit tests | 156 passed / 0 failed / 1 skipped | behaviour pinned against regressions |
 | Verification tests | 63 passed / 0 failed / 0 skipped | rule-layer invariants + judgment-contract pins hold |
-| Hand-adjudicated set (438 rows) | **0 mismatches** | a human-curated safety net, judged by the freshly built engine (the loop hard-fails on a stale binary); rows where the reference's regional form is served as a tagged candidate are graded *acceptable*, marked 候選命中 — not silently counted as full matches |
+| Hand-adjudicated set (438 rows) | 23 primary-differs (all candidate-served) / **0 served misses** | a human-curated safety net, judged by the freshly built engine (the loop hard-fails on a stale binary). 23 rows deliberately keep the standard form primary while the reference's regional form is served as a tagged candidate (marked 候選命中) — disclosed, gated by ratchet, never counted as full matches |
 | Deep comparison vs mumuy (90,042 rows) | ~96% reconciled | agreement *where mumuy has an answer*; ~4% deliberate or open divergence |
 | Terminal-gender consistency (random chains) | **0 / 7,500** | an oracle-free metamorphic invariant that started life as a 1.13% defect gauge; the structure-collapsing shortcuts behind it were retired across two audit rounds and the run (fixed seed, deterministic) now asserts exactly zero |
 
@@ -184,8 +184,12 @@ the executable, the editable `Lexicon\` layers, `LICENSE`, `ATTRIBUTION.md`,
 `SHA256SUMS.txt` covering every one of them (ZIP included). It refuses to run on a dirty
 tree and provenance-seals the executable to the commit it was built from. Release builds
 are made from a fresh clone of the **public** repository, so the embedded commit hash is
-resolvable in public history. Line endings are pinned by `.gitattributes` (`eol=lf`), so
-the same commit yields byte-identical assets in any clone.
+resolvable in public history. Line endings are pinned by `.gitattributes` (`eol=lf`) and
+the release ZIP is built deterministically (entries sorted, every timestamp fixed to the
+commit time), so the same commit built with the same toolchain yields byte-identical
+loose assets **and** ZIP in any clone. An optional `-SignCommand` hook signs the staged
+executable at the only correct point — before hashing and zipping — and the publish fails
+unless the signature verifies.
 
 ### Reproducing the validation faces (optional, dev-only)
 

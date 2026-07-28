@@ -9,7 +9,9 @@
 # newest exe under bin is used — and its age is printed so staleness is visible.
 param(
     [string]$ExporterPath = '',
-    [int]$MaxMismatch = -1
+    [int]$MaxMismatch = -1,
+    [int]$MaxPrimary = -1,
+    [int]$MaxCandidateHit = -1
 )
 
 $ErrorActionPreference = 'Stop'
@@ -98,20 +100,19 @@ try {
     & py $packScript --compact $judgedTsv --unsupported $unsupportedTsv --output $workbook | Out-Host
     if ($LASTEXITCODE -ne 0) { throw "pack_tsv_pair_to_xlsx failed with $LASTEXITCODE" }
 
-    # 5. Judgment distribution summary — over the CLOSED legal vocabulary. An unknown
-    # judgment used to be silently bucketed as 其他 and the loop stayed green (the audit
-    # produced 438 rows of an unknown value without tripping anything); now it is a
-    # hard failure, same law as the 90k face.
+    # 5. Judgment distribution summary — over the CLOSED legal vocabulary, matched by
+    # EXACT SEGMENT, not prefix. StartsWith let 一致TYPO count as 一致 (the audit proved
+    # it); a legal display is either exactly a legal word (一致) or `word：detail` where
+    # the piece before the first fullwidth colon equals a legal word exactly.
     $legal = @('可接受簡寫', '不一致', '一致', '已收編', '拒收', '界外', '群稱')
     $dist = @{}
     foreach ($r in $review) {
         $v = [string]$r.JudgmentDisplay
-        $p = $null
-        foreach ($k in $legal) { if ($v.StartsWith($k)) { $p = $k; break } }
-        if ($null -eq $p) {
+        $seg = ($v -split '：', 2)[0]
+        if ($legal -notcontains $seg) {
             throw "438 GATE FAILED: illegal judgment value '$v' (row $($r.TableRowNumber))"
         }
-        $dist[$p] = 1 + ($dist[$p] ?? 0)
+        $dist[$seg] = 1 + ($dist[$seg] ?? 0)
     }
     'Judgment distribution:'
     $dist.GetEnumerator() | Sort-Object Value -Descending | ForEach-Object { '  {0} × {1}' -f $_.Key, $_.Value }
@@ -122,13 +123,19 @@ try {
         throw "438 GATE FAILED: review row count $($review.Count) != 438"
     }
 
-    # Split metrics (release-audit round 2): a primary-answer mismatch whose reference
-    # term is still served among our candidates (候選命中) is disclosed, not hidden
-    # inside the acceptable bucket; the hard gate is on genuine served misses.
+    # Split metrics with ALL THREE counters ratcheted (release-audit round 4): gating
+    # served-miss alone let every primary rot into a candidate-served hit and stay green.
     $servedMiss = [int]($dist['不一致'] ?? 0)
     $candidateHit = @($review | Where-Object { [string]$_.JudgmentDisplay -like '*候選命中*' }).Count
-    Write-Output "438 primary-answer mismatches: $($servedMiss + $candidateHit) (of which $candidateHit candidate-served)"
+    $primary = $servedMiss + $candidateHit
+    Write-Output "438 primary-answer mismatches: $primary$(if ($MaxPrimary -ge 0) { " (gate <= $MaxPrimary)" }) (of which $candidateHit candidate-served$(if ($MaxCandidateHit -ge 0) { ", gate <= $MaxCandidateHit" }))"
     Write-Output "438 served misses: $servedMiss$(if ($MaxMismatch -ge 0) { " (gate <= $MaxMismatch)" })"
+    if ($MaxPrimary -ge 0 -and $primary -gt $MaxPrimary) {
+        throw "438 GATE FAILED: $primary primary-answer mismatches > $MaxPrimary"
+    }
+    if ($MaxCandidateHit -ge 0 -and $candidateHit -gt $MaxCandidateHit) {
+        throw "438 GATE FAILED: $candidateHit candidate-served hits > $MaxCandidateHit"
+    }
     if ($MaxMismatch -ge 0 -and $servedMiss -gt $MaxMismatch) {
         throw "438 GATE FAILED: $servedMiss served misses > $MaxMismatch"
     }

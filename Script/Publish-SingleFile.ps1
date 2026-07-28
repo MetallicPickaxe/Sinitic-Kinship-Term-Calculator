@@ -5,7 +5,14 @@
 # resources.pri, product name fixed at build time via AssemblyName (never rename
 # post-build). Requires PowerShell 7+ (pwsh).
 param(
-    [string]$ProductName = 'SiniticKinshipTermCalculator'
+    [string]$ProductName = 'SiniticKinshipTermCalculator',
+    # Optional signing hook, run at the ONLY correct point (staged exe, before hashing and
+    # zipping): a command line with {0} replaced by the staged exe path, e.g.
+    #   -SignCommand 'signtool sign /fd SHA256 /a "{0}"'
+    # After it runs, the signature must verify or the publish fails. Re-running the script
+    # without the hook rebuilds an UNSIGNED artifact — signing is part of the pipeline, not
+    # a post-step, so the manifest always describes the bytes actually shipped.
+    [string]$SignCommand = ''
 )
 
 $ErrorActionPreference = 'Stop'
@@ -81,13 +88,14 @@ $rev = Get-ExeRevision $exe
 if ($rev -ne $head) { throw "PROVENANCE FAILED: exe stamped '$rev', HEAD is '$head'" }
 Write-Output "Artifact provenance-sealed to $head"
 
-# ---- Assemble the distributable unit in FRESH staging (whitelist only). The old flow
-# copied into whatever Distribution\ already held; the audit pre-planted a stale file and
-# it shipped, hashed into the manifest. Everything below is built in a temp dir and
-# atomically swapped in.
-$staging = Join-Path ([IO.Path]::GetTempPath()) ("kinship-dist-" + [Guid]::NewGuid().ToString('N'))
+# ---- Assemble the distributable unit in FRESH whitelist staging on the SAME VOLUME as
+# Distribution\ (a %TEMP% staging on another drive made the final Move a copy+delete with
+# a visible window; a same-volume rename is instantaneous). The old flow copied into
+# whatever Distribution\ already held; the audit pre-planted a stale file and it shipped.
+$staging = Join-Path $repoRoot ("Distribution.staging-" + [Guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $staging | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $staging 'Lexicon') | Out-Null
+New-Item -ItemType Directory -Path (Join-Path $staging 'ThirdPartyLicenses') | Out-Null
 
 Copy-Item $exe (Join-Path $staging "$ProductName.exe")
 # The lexicon layers ship as EDITABLE files next to the exe (the same layers are embedded
@@ -95,10 +103,25 @@ Copy-Item $exe (Join-Path $staging "$ProductName.exe")
 $lexiconSource = Join-Path $repoRoot 'Resource\Data\Lexicon'
 Copy-Item (Join-Path $lexiconSource '*.yaml') (Join-Path $staging 'Lexicon')
 Copy-Item (Join-Path $lexiconSource '*.yaml.txt') (Join-Path $staging 'Lexicon')
-# Licensing set: the package must explain itself without the repository.
+# Licensing set: the package must explain itself without the repository, and the WebView2
+# license REQUIRES its text to accompany binary redistribution.
 Copy-Item (Join-Path $repoRoot 'LICENSE') (Join-Path $staging 'LICENSE')
 Copy-Item (Join-Path $repoRoot 'ATTRIBUTION.md') (Join-Path $staging 'ATTRIBUTION.md')
 Copy-Item (Join-Path $repoRoot 'THIRD-PARTY-NOTICES.md') (Join-Path $staging 'THIRD-PARTY-NOTICES.md')
+Copy-Item (Join-Path $repoRoot 'ThirdPartyLicenses\*') (Join-Path $staging 'ThirdPartyLicenses')
+
+# Signing happens HERE — on the staged exe, before any hash or zip exists, so the manifest
+# always describes the shipped bytes. (Signing after manifest/zip invalidates both.)
+if ($SignCommand) {
+    $stagedExe = Join-Path $staging "$ProductName.exe"
+    $cmd = $SignCommand -f $stagedExe
+    Write-Output "Signing: $cmd"
+    Invoke-Expression $cmd
+    if ($LASTEXITCODE -ne 0) { throw "Sign command failed with $LASTEXITCODE" }
+    $sig = Get-AuthenticodeSignature $stagedExe
+    if ($sig.Status -ne 'Valid') { throw "Signature did not verify: $($sig.Status) $($sig.StatusMessage)" }
+    Write-Output "Signature verified: $($sig.SignerCertificate.Subject)"
+}
 
 # Integrity manifest over every packaged file (the Lexicon layers override embedded data
 # at runtime, so a tampered layer changes what users see).
@@ -108,22 +131,45 @@ Get-ChildItem $staging -Recurse -File | Sort-Object { $_.FullName.Substring($sta
     "$((Get-FileHash $_.FullName -Algorithm SHA256).Hash)  $rel"
 } | Set-Content $manifest -Encoding ascii
 
-# Release ZIP preserving the directory structure (built OUTSIDE staging so it cannot
-# swallow itself), then moved in and hashed alongside the loose layout. The zipped copy
-# of SHA256SUMS covers the loose files; the zip's own hash is appended to the loose
-# manifest only — a file cannot contain its own digest.
+# DETERMINISTIC release ZIP: entries sorted by path, every entry timestamp fixed to the
+# COMMIT time (not the build time). Compress-Archive stored per-file build timestamps, so
+# the same commit produced a different zip hash on every run — the audit measured three
+# different hashes from identical inputs. Built outside staging so it cannot swallow
+# itself; the zip's own hash goes into the loose manifest only (a file cannot contain its
+# own digest).
+Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
+$commitTime = [DateTimeOffset]::Parse((git -C $repoRoot log -1 --format=%cI).Trim())
 $zipName = "$ProductName-$($rev.Substring(0, 9)).zip"
-$zipTemp = Join-Path ([IO.Path]::GetTempPath()) $zipName
-if (Test-Path $zipTemp) { Remove-Item $zipTemp -Force }
-Compress-Archive -Path (Join-Path $staging '*') -DestinationPath $zipTemp -CompressionLevel Optimal
-Move-Item $zipTemp (Join-Path $staging $zipName)
+$zipTemp = Join-Path $repoRoot ("Distribution.staging-zip-" + [Guid]::NewGuid().ToString('N'))
+try {
+    $fs = [System.IO.File]::Open($zipTemp, [System.IO.FileMode]::CreateNew)
+    $zip = New-Object System.IO.Compression.ZipArchive($fs, [System.IO.Compression.ZipArchiveMode]::Create)
+    Get-ChildItem $staging -Recurse -File | Sort-Object { $_.FullName.Substring($staging.Length + 1) } | ForEach-Object {
+        $rel = $_.FullName.Substring($staging.Length + 1).Replace('\', '/')
+        $entry = $zip.CreateEntry($rel, [System.IO.Compression.CompressionLevel]::Optimal)
+        $entry.LastWriteTime = $commitTime
+        $in = [System.IO.File]::OpenRead($_.FullName)
+        $out = $entry.Open()
+        $in.CopyTo($out)
+        $out.Dispose(); $in.Dispose()
+    }
+    $zip.Dispose(); $fs.Dispose()
+    Move-Item $zipTemp (Join-Path $staging $zipName)
+}
+finally {
+    if (Test-Path $zipTemp) { Remove-Item $zipTemp -Force }
+}
 "$((Get-FileHash (Join-Path $staging $zipName) -Algorithm SHA256).Hash)  $zipName" | Add-Content $manifest -Encoding ascii
 
-# Atomic swap into Distribution\.
-if (Test-Path $distribution) { Remove-Item $distribution -Recurse -Force }
+# Same-volume rename swap (no cross-volume copy window): old folder renamed aside, fresh
+# one renamed in, old removed last.
+$old = "$distribution.old-" + [Guid]::NewGuid().ToString('N')
+if (Test-Path $distribution) { Move-Item $distribution $old }
 Move-Item $staging $distribution
+if (Test-Path $old) { Remove-Item $old -Recurse -Force }
 
 $size = [Math]::Round((Get-Item (Join-Path $distribution "$ProductName.exe")).Length / 1MB, 1)
 $layerCount = (Get-ChildItem (Join-Path $distribution 'Lexicon') -Filter '*.yaml').Count
 $entryCount = (Get-Content (Join-Path $distribution 'SHA256SUMS.txt')).Count
-Write-Output "Published: Distribution\$ProductName.exe (${size} MB) + Lexicon\ ($layerCount layers) + LICENSE/ATTRIBUTION/NOTICES + $zipName | SHA256SUMS.txt ($entryCount entries)"
+$signState = if ($SignCommand) { 'signed' } else { 'UNSIGNED' }
+Write-Output "Published ($signState): Distribution\$ProductName.exe (${size} MB) + Lexicon\ ($layerCount layers) + licensing set + $zipName | SHA256SUMS.txt ($entryCount entries)"

@@ -18,18 +18,37 @@
 # primary-answer mismatch whose reference term is still served among our candidates
 # (候選命中) is disclosed separately from a genuine served-miss.
 param(
-    [int]$Max438Mismatch = 0,
-    [int]$Max90kMismatch = 3567,
+    # ALL THREE counters ratchet on BOTH faces. Gating served-miss alone let every primary
+    # answer rot while the reference survived only as a tagged candidate (the audit turned
+    # all 438 primaries wrong and the loop stayed green); candidate-hit inflation is the
+    # same rot in disguise, so it ratchets too.
+    [int]$Max438Primary = 23, [int]$Max438CandidateHit = 23, [int]$Max438Mismatch = 0,
+    [int]$Max90kPrimary = 3601, [int]$Max90kCandidateHit = 34, [int]$Max90kMismatch = 3567,
     # Exact suite fingerprints (passed/failed/skipped). Any deviation is red: a skipped or
-    # vanished test must be re-baselined CONSCIOUSLY here, never absorbed by a floor — the
-    # audit demonstrated [Ignore]-ing M3 and four contract tests while a floor-based gate
-    # stayed green.
+    # vanished test must be re-baselined CONSCIOUSLY, never absorbed by a floor.
     [int]$UnitPassed = 156, [int]$UnitFailed = 0, [int]$UnitSkipped = 1,
-    [int]$VerificationPassed = 63, [int]$VerificationFailed = 0, [int]$VerificationSkipped = 0
+    [int]$VerificationPassed = 63, [int]$VerificationFailed = 0, [int]$VerificationSkipped = 0,
+    # Baselines live in this committed script. Overriding any of them from the CLI is a
+    # RE-BASELINING act and must be declared — a release run must never absorb a quiet
+    # override (the audit re-baselined around an ignored invariant via plain CLI args).
+    [switch]$AllowBaselineOverride
 )
 
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+$baselineParams = @('Max438Primary','Max438CandidateHit','Max438Mismatch',
+    'Max90kPrimary','Max90kCandidateHit','Max90kMismatch',
+    'UnitPassed','UnitFailed','UnitSkipped',
+    'VerificationPassed','VerificationFailed','VerificationSkipped')
+$overridden = @($baselineParams | Where-Object { $PSBoundParameters.ContainsKey($_) })
+if ($overridden.Count -gt 0 -and -not $AllowBaselineOverride) {
+    Write-Output "BASELINE OVERRIDE REFUSED (pass -AllowBaselineOverride to re-baseline consciously): $($overridden -join ', ')"
+    exit 1
+}
+if ($overridden.Count -gt 0) {
+    Write-Output "BASELINE OVERRIDDEN (declared): $($overridden -join ', ')"
+}
 
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
@@ -129,22 +148,29 @@ function Invoke-Suite([string]$label, [string]$dll, [int]$expPassed, [int]$expFa
 Invoke-Suite 'UNIT' $projects[0].Bin $UnitPassed $UnitFailed $UnitSkipped
 Invoke-Suite 'VERIFICATION' $projects[1].Bin $VerificationPassed $VerificationFailed $VerificationSkipped
 
-# The metamorphic terminal-gender invariant is enforced BY NAME, in its own run: even a
-# re-baselined fingerprint cannot quietly absorb an [Ignore] on the one oracle-free
-# correctness signal this project has.
+# The metamorphic terminal-gender invariant is enforced by FULLY-QUALIFIED NAME with an
+# exact 1/0/0 fingerprint: a substring /Tests: filter let a same-named always-pass decoy
+# in another class satisfy "Passed==1" while the real invariant sat [Ignore]d.
 Write-Output 'M3 (named enforcement):'
-$m3 = & $vstest $projects[0].Bin /Tests:M3_TerminalGenderConsistencyGauge --logger:'console;verbosity=minimal' 2>$null
+$m3Fqn = 'Test_Unit.MetamorphicInvariantTests.M3_TerminalGenderConsistencyGauge'
+$m3 = & $vstest $projects[0].Bin "/TestCaseFilter:FullyQualifiedName=$m3Fqn" --logger:'console;verbosity=minimal' 2>$null
 $m3Exit = $LASTEXITCODE
-$m3Passed = -1
-foreach ($line in $m3) { if ($line -match 'Passed:\s+(\d+)') { $m3Passed = [int]$Matches[1] } }
+$m3Passed = -1; $m3Failed = -1; $m3Skipped = 0; $m3Total = -1
+foreach ($line in $m3) {
+    if ($line -match 'Passed:\s+(\d+)') { $m3Passed = [int]$Matches[1] }
+    if ($line -match 'Failed:\s+(\d+)') { $m3Failed = [int]$Matches[1] }
+    if ($line -match 'Skipped:\s+(\d+)') { $m3Skipped = [int]$Matches[1] }
+    if ($line -match 'Total:\s+(\d+)') { $m3Total = [int]$Matches[1] }
+}
 $m3 | Select-String -Pattern 'Passed!|Failed!|Skipped:' | ForEach-Object { $_.Line }
-if ($m3Exit -ne 0 -or $m3Passed -ne 1) {
-    Write-Output "GATE FAILED: M3 invariant did not run-and-pass (exit $m3Exit, passed $m3Passed)"
+if ($m3Exit -ne 0 -or $m3Passed -ne 1 -or $m3Failed -ne 0 -or $m3Skipped -ne 0 -or $m3Total -ne 1) {
+    Write-Output "GATE FAILED: M3 invariant fingerprint $m3Passed/$m3Failed/$m3Skipped total $m3Total != 1/0/0 total 1 (exit $m3Exit)"
     exit 1
 }
 
 Write-Output 'MAIN:'
-& "$root\Utility\Scripts\build_judged_main_workbook.ps1" -ExporterPath $exporter -MaxMismatch $Max438Mismatch
+& "$root\Utility\Scripts\build_judged_main_workbook.ps1" -ExporterPath $exporter `
+    -MaxMismatch $Max438Mismatch -MaxPrimary $Max438Primary -MaxCandidateHit $Max438CandidateHit
 if ($LASTEXITCODE -ne 0) { Write-Output 'GATE FAILED: 438 workbook pass'; exit 1 }
 
 Write-Output '90K:'
@@ -170,8 +196,11 @@ $rows | Group-Object { ($_.our_judgment -split '：')[0] } | Sort-Object Count -
 }
 $servedMiss90k = ($rows | Where-Object { $_.our_judgment -like '不一致*' }).Count
 $candidateHit90k = ($rows | Where-Object { $_.our_judgment -like '*候選命中*' }).Count
-Write-Output "90k primary-answer mismatches: $($servedMiss90k + $candidateHit90k) (of which $candidateHit90k candidate-served)"
+$primary90k = $servedMiss90k + $candidateHit90k
+Write-Output "90k primary-answer mismatches: $primary90k (gate <= $Max90kPrimary; of which $candidateHit90k candidate-served, gate <= $Max90kCandidateHit)"
 Write-Output "90k served misses: $servedMiss90k (gate <= $Max90kMismatch)"
+if ($primary90k -gt $Max90kPrimary) { Write-Output 'GATE FAILED: 90k primary-answer mismatch above ratchet'; exit 1 }
+if ($candidateHit90k -gt $Max90kCandidateHit) { Write-Output 'GATE FAILED: 90k candidate-hit above ratchet'; exit 1 }
 if ($servedMiss90k -gt $Max90kMismatch) { Write-Output 'GATE FAILED: 90k served-miss above gate'; exit 1 }
 
 Write-Output 'VALIDATION LOOP: ALL GATES GREEN'

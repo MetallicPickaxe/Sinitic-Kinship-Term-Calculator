@@ -1,19 +1,33 @@
 # Third-Party Notices
 
-This distribution of **Sinitic Kinship Term Calculator** contains, or was built with, the
-following third-party components. Full license texts are available at the linked upstream
-projects; the project's own license is in `LICENSE`.
+This distribution of **Sinitic Kinship Term Calculator** is a self-contained Windows build:
+the executable embeds the .NET runtime, the Windows App SDK runtime, and the NuGet
+components below. **Not everything embedded is MIT** — the accurate license for each
+component is listed here, and the full texts that binary redistribution requires are
+reproduced in the `ThirdPartyLicenses\` folder of this package. The project's own license
+is in `LICENSE`.
 
-## Bundled in the executable (self-contained publish)
+> Formal legal review status: this notices file was assembled from the license files
+> shipped inside the exact NuGet packages used by the build. A formal legal review of the
+> Windows App SDK distribution terms (which include end-user pass-through obligations) has
+> **not** been performed; treat that as an open item before wide distribution.
 
-| Component | License | Source |
+## Microsoft platform components (NOT MIT)
+
+| Component | License | Full text |
 |---|---|---|
-| .NET Runtime and libraries | MIT | <https://github.com/dotnet/runtime> |
-| Windows App SDK (WinUI 3) | MIT | <https://github.com/microsoft/WindowsAppSDK> |
-| CommunityToolkit.Mvvm | MIT | <https://github.com/CommunityToolkit/dotnet> |
-| Microsoft.Extensions.Configuration (+ Binder, DI) | MIT | <https://github.com/dotnet/runtime> |
-| NetEscapades.Configuration.Yaml | MIT | <https://github.com/andrewlock/NetEscapades.Configuration> |
-| YamlDotNet (transitive) | MIT | <https://github.com/aaubry/YamlDotNet> |
+| Windows App SDK 2.3.1 (WinUI 3 runtime, embedded via self-contained publish) | **Microsoft Software License Terms — Microsoft Windows App SDK** (includes end-user terms that this notice passes through) | `ThirdPartyLicenses\WindowsAppSDK-2.3.1-License.txt` |
+| WebView2 loader (`WebView2Loader.dll`, embedded; Microsoft.Web.WebView2 1.0.3719.77) | BSD-style Microsoft license **requiring reproduction of the copyright notice, conditions and disclaimer in binary distributions** — reproduced in full | `ThirdPartyLicenses\WebView2-License.txt` |
+| .NET runtime & libraries (embedded via self-contained publish) | MIT for the cross-platform runtime, **plus** Windows-specific components under the .NET Library License and other Microsoft terms | `ThirdPartyLicenses\DotNet-Windows-Licensing.md` (with links to Microsoft's license inventory) |
+
+## MIT-licensed NuGet components
+
+| Component | Source |
+|---|---|
+| CommunityToolkit.Mvvm 8.4.0 | <https://github.com/CommunityToolkit/dotnet> |
+| Microsoft.Extensions.Configuration / .Binder / .DependencyInjection 10.0.0 | <https://github.com/dotnet/runtime> |
+| NetEscapades.Configuration.Yaml 3.1.0 | <https://github.com/andrewlock/NetEscapades.Configuration> |
+| YamlDotNet (transitive) | <https://github.com/aaubry/YamlDotNet> |
 
 ## Data provenance
 

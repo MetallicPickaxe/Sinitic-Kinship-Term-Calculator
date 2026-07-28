@@ -32,3 +32,10 @@ Utility/MumuyAlgorithm/Data/kinship_terms.yaml
 Resource/Data/Reference/MumuyModeMapAccuracyCompact.tsv
 Resource/Data/Reference/MumuyModeMapAccuracyCompact.xlsx
 Resource/Data/Reference/MumuyModeMapAccuracyCompact.Unsupported.tsv
+
+# Derived-by-tooling files that a fresh clone generates on first validation run —
+# without these repo-level entries the second run trips its own dirty gate on machines
+# lacking a global gitignore.
+*.pre-refresh.bak
+__pycache__/
+Distribution.staging-*/
