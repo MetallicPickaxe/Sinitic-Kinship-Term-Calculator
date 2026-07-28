@@ -1,0 +1,11 @@
+# Deterministic line endings: the same commit must yield byte-identical files (and
+# therefore identical published-asset hashes) in every fresh clone, regardless of the
+# machine's core.autocrlf. LF everywhere; binaries exempt.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.ico binary
+*.xlsx binary
+*.sqlite3 binary
+*.pfx binary

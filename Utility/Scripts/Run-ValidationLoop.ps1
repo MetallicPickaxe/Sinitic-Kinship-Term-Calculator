@@ -20,8 +20,12 @@
 param(
     [int]$Max438Mismatch = 0,
     [int]$Max90kMismatch = 3567,
-    [int]$MinUnitTotal = 157,
-    [int]$MinVerificationTotal = 59
+    # Exact suite fingerprints (passed/failed/skipped). Any deviation is red: a skipped or
+    # vanished test must be re-baselined CONSCIOUSLY here, never absorbed by a floor — the
+    # audit demonstrated [Ignore]-ing M3 and four contract tests while a floor-based gate
+    # stayed green.
+    [int]$UnitPassed = 156, [int]$UnitFailed = 0, [int]$UnitSkipped = 1,
+    [int]$VerificationPassed = 63, [int]$VerificationFailed = 0, [int]$VerificationSkipped = 0
 )
 
 $ErrorActionPreference = 'Stop'
@@ -35,6 +39,39 @@ if (-not $msbuild) { throw 'MSBuild.exe not found via vswhere (-prerelease).' }
 if (-not $vstest) { throw 'vstest.console.exe not found via vswhere (-prerelease).' }
 $head = (git -C $root rev-parse HEAD).Trim()
 Write-Output "Toolchain: MSBuild $((Get-Item $msbuild).VersionInfo.ProductVersion) | HEAD $head"
+
+# Dirty-input rejection: the +sha assembly stamp records HEAD, not the bytes actually
+# compiled — the audit built an edited, uncommitted .cs and the seal still claimed HEAD.
+# So the seal is only meaningful over a clean tree. The single allowed exception is the
+# judged 438 workbook, which the loop itself refreshes as a DERIVED output (it is not a
+# build input); everything else — modified or untracked — fails the run.
+$dirtyAllowed = @('Resource/Data/Reference/MumuyMainAccuracyCompact.xlsx')
+$dirty = @(git -C $root status --porcelain | Where-Object {
+    $path = ($_ -replace '^..\s+', '') -replace '^"(.*)"$', '$1'
+    $dirtyAllowed -notcontains $path
+})
+if ($dirty.Count -gt 0) {
+    Write-Output 'DIRTY BUILD INPUTS (commit or remove before validating):'
+    $dirty | Select-Object -First 10 | ForEach-Object { "  $_" }
+    exit 1
+}
+
+# Oracle-input seal: every figure this loop reports was measured against EXACTLY these
+# bytes (also pinned in README). A different oracle silently changes the 90k face.
+$oraclePins = @(
+    @{ Path = "$root\Utility\MumuyAlgorithm\Data\mode-map.json";      Sha = 'FE4B66691BC3BD437E2C88D4D4C738F6DEAAF60844A610E235B7D0644F0B35D1' },
+    @{ Path = "$root\Utility\MumuyAlgorithm\Data\cache.json";         Sha = '1E105A7DBF6DF3E8B0E3C7087D5F34F91273325F5B99E5C150E62C740590A9E4' },
+    @{ Path = "$root\Utility\MumuyAlgorithm\Data\kinship_terms.yaml"; Sha = '67B2AECE10AB3E79AC33EA65F1CA64AFA474DF800D9B500A5C1386701337EFCF' }
+)
+foreach ($pin in $oraclePins) {
+    if (-not (Test-Path $pin.Path)) { Write-Output "ORACLE MISSING: $($pin.Path)"; exit 1 }
+    $actual = (Get-FileHash $pin.Path -Algorithm SHA256).Hash
+    if ($actual -ne $pin.Sha) {
+        Write-Output "ORACLE HASH MISMATCH: $($pin.Path)`n  expected $($pin.Sha)`n  actual   $actual"
+        exit 1
+    }
+}
+Write-Output 'Oracle inputs hash-verified (3 files)'
 
 $net = 'net10.0-windows10.0.26100.0'
 $projects = @(
@@ -71,25 +108,40 @@ foreach ($entry in $projects) {
 $exporter = $projects[2].Bin
 Write-Output "Binaries provenance-sealed to $head"
 
-function Invoke-Suite([string]$label, [string]$dll, [int]$minTotal) {
+function Invoke-Suite([string]$label, [string]$dll, [int]$expPassed, [int]$expFailed, [int]$expSkipped) {
     Write-Output "${label}:"
     $lines = & $vstest $dll --logger:'console;verbosity=minimal' 2>$null
     $vstestExit = $LASTEXITCODE
     $summary = $lines | Select-String -Pattern 'Passed!|Failed!|Total tests|Passed:|Failed:|Skipped:' | ForEach-Object { $_.Line }
     $summary
-    $failedCount = -1; $totalCount = -1
+    $passed = -1; $failed = -1; $skipped = -1
     foreach ($line in $lines) {
-        if ($line -match 'Failed:\s+(\d+)') { $failedCount = [int]$Matches[1] }
-        if ($line -match 'Total:\s+(\d+)') { $totalCount = [int]$Matches[1] }
+        if ($line -match 'Passed:\s+(\d+)') { $passed = [int]$Matches[1] }
+        if ($line -match 'Failed:\s+(\d+)') { $failed = [int]$Matches[1] }
+        if ($line -match 'Skipped:\s+(\d+)') { $skipped = [int]$Matches[1] }
     }
-    if ($vstestExit -ne 0 -or $failedCount -ne 0 -or $totalCount -lt $minTotal) {
-        Write-Output "GATE FAILED: $label (vstest exit $vstestExit, failed $failedCount, total $totalCount < floor $minTotal)"
+    if ($vstestExit -ne 0 -or $passed -ne $expPassed -or $failed -ne $expFailed -or $skipped -ne $expSkipped) {
+        Write-Output "GATE FAILED: $label fingerprint $passed/$failed/$skipped != expected $expPassed/$expFailed/$expSkipped (vstest exit $vstestExit)"
         exit 1
     }
 }
 
-Invoke-Suite 'UNIT' $projects[0].Bin $MinUnitTotal
-Invoke-Suite 'VERIFICATION' $projects[1].Bin $MinVerificationTotal
+Invoke-Suite 'UNIT' $projects[0].Bin $UnitPassed $UnitFailed $UnitSkipped
+Invoke-Suite 'VERIFICATION' $projects[1].Bin $VerificationPassed $VerificationFailed $VerificationSkipped
+
+# The metamorphic terminal-gender invariant is enforced BY NAME, in its own run: even a
+# re-baselined fingerprint cannot quietly absorb an [Ignore] on the one oracle-free
+# correctness signal this project has.
+Write-Output 'M3 (named enforcement):'
+$m3 = & $vstest $projects[0].Bin /Tests:M3_TerminalGenderConsistencyGauge --logger:'console;verbosity=minimal' 2>$null
+$m3Exit = $LASTEXITCODE
+$m3Passed = -1
+foreach ($line in $m3) { if ($line -match 'Passed:\s+(\d+)') { $m3Passed = [int]$Matches[1] } }
+$m3 | Select-String -Pattern 'Passed!|Failed!|Skipped:' | ForEach-Object { $_.Line }
+if ($m3Exit -ne 0 -or $m3Passed -ne 1) {
+    Write-Output "GATE FAILED: M3 invariant did not run-and-pass (exit $m3Exit, passed $m3Passed)"
+    exit 1
+}
 
 Write-Output 'MAIN:'
 & "$root\Utility\Scripts\build_judged_main_workbook.ps1" -ExporterPath $exporter -MaxMismatch $Max438Mismatch

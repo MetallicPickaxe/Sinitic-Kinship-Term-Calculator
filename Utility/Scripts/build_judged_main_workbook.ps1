@@ -98,12 +98,19 @@ try {
     & py $packScript --compact $judgedTsv --unsupported $unsupportedTsv --output $workbook | Out-Host
     if ($LASTEXITCODE -ne 0) { throw "pack_tsv_pair_to_xlsx failed with $LASTEXITCODE" }
 
-    # 5. Judgment distribution summary.
+    # 5. Judgment distribution summary — over the CLOSED legal vocabulary. An unknown
+    # judgment used to be silently bucketed as 其他 and the loop stayed green (the audit
+    # produced 438 rows of an unknown value without tripping anything); now it is a
+    # hard failure, same law as the 90k face.
+    $legal = @('可接受簡寫', '不一致', '一致', '已收編', '拒收', '界外', '群稱')
     $dist = @{}
     foreach ($r in $review) {
         $v = [string]$r.JudgmentDisplay
-        $p = '其他'
-        foreach ($k in @('可接受簡寫', '不一致', '一致', '已收編', '拒收')) { if ($v.StartsWith($k)) { $p = $k; break } }
+        $p = $null
+        foreach ($k in $legal) { if ($v.StartsWith($k)) { $p = $k; break } }
+        if ($null -eq $p) {
+            throw "438 GATE FAILED: illegal judgment value '$v' (row $($r.TableRowNumber))"
+        }
         $dist[$p] = 1 + ($dist[$p] ?? 0)
     }
     'Judgment distribution:'

@@ -144,7 +144,7 @@ finite set and stops; we compute past its edge, mark the boundary plainly (a des
 | Surface | Status | What it actually proves |
 |---|---|---|
 | Unit tests | 156 passed / 0 failed / 1 skipped | behaviour pinned against regressions |
-| Verification tests | 59 / 59 | rule-layer invariants hold |
+| Verification tests | 63 passed / 0 failed / 0 skipped | rule-layer invariants + judgment-contract pins hold |
 | Hand-adjudicated set (438 rows) | **0 mismatches** | a human-curated safety net, judged by the freshly built engine (the loop hard-fails on a stale binary); rows where the reference's regional form is served as a tagged candidate are graded *acceptable*, marked 候選命中 — not silently counted as full matches |
 | Deep comparison vs mumuy (90,042 rows) | ~96% reconciled | agreement *where mumuy has an answer*; ~4% deliberate or open divergence |
 | Terminal-gender consistency (random chains) | **0 / 7,500** | an oracle-free metamorphic invariant that started life as a 1.13% defect gauge; the structure-collapsing shortcuts behind it were retired across two audit rounds and the run (fixed seed, deterministic) now asserts exactly zero |
@@ -178,7 +178,14 @@ Requirements: Visual Studio (with MSBuild), the .NET 10 SDK (`global.json` pins 
 and **PowerShell 7+ (`pwsh`)** for the scripts — Windows PowerShell 5.1 cannot parse them.
 MSBuild is resolved via `vswhere -latest -prerelease` (a deliberate newest-toolchain stance);
 both scripts print the resolved MSBuild version and git HEAD so every run records its toolchain.
-`Distribution\SHA256SUMS.txt` covers the executable **and** every shipped Lexicon file.
+The publish script assembles the whole distributable unit in fresh, whitelist-driven staging:
+the executable, the editable `Lexicon\` layers, `LICENSE`, `ATTRIBUTION.md`,
+`THIRD-PARTY-NOTICES.md`, a release ZIP preserving that structure, and
+`SHA256SUMS.txt` covering every one of them (ZIP included). It refuses to run on a dirty
+tree and provenance-seals the executable to the commit it was built from. Release builds
+are made from a fresh clone of the **public** repository, so the embedded commit hash is
+resolvable in public history. Line endings are pinned by `.gitattributes` (`eol=lf`), so
+the same commit yields byte-identical assets in any clone.
 
 ### Reproducing the validation faces (optional, dev-only)
 
@@ -197,8 +204,10 @@ FE4B66691BC3BD437E2C88D4D4C738F6DEAAF60844A610E235B7D0644F0B35D1  Utility/MumuyA
 ```
 
 `kinship_terms.yaml` is derived locally (`Utility\Scripts\import_mumuy_terms.py` /
-`export_kinship_yaml.py`). Without these files the two comparison faces (438 / 90k) and the
-oracle-backed tests cannot run; everything else builds and passes.
+`export_kinship_yaml.py`). The validation loop hash-verifies these three files before
+measuring, so a different oracle cannot silently change the figures. Without them the
+**90k face and the oracle-backed tests** cannot run — the 438 face needs only the tracked
+reference TSV and runs fine; everything else builds and passes.
 
 ## Licence
 
