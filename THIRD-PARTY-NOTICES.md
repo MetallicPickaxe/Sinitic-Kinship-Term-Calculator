@@ -5,12 +5,21 @@ the executable embeds the .NET runtime pack, the Windows App SDK runtime family,
 MachineLearning and the NuGet components below. **Not everything embedded is MIT.**
 
 **The authoritative, machine-generated list is [`LICENSE-INVENTORY.md`](LICENSE-INVENTORY.md)**,
-derived by `Utility\Scripts\Build-LicenseInventory.ps1` from the locked dependency graph of
-the very publish being shipped (`project.assets.json` for the PackageReference closure plus
-the build's own `deps.json` for the embedded runtime packs). Every vendor license/notice
-file found in those packages is reproduced under `ThirdPartyLicenses\<Package>.<Version>\`
-and hashed in that inventory. This file is the human-readable summary; the inventory is the
-part that cannot drift from the artifact.
+derived by `Utility\Scripts\Build-LicenseInventory.ps1` from the artifact of the release
+publish: `project.assets.json` (restored with the release properties) for the
+PackageReference closure, and the release build's own `deps.json` for the runtime packs it
+actually embedded. Vendor license/notice files are discovered **recursively** inside each
+package, reproduced under `ThirdPartyLicenses\<Package>.<Version>\<original path>` with
+their paths preserved, and hashed in the inventory; a package whose nuspec declares
+`<license type="file">` must ship that exact file or generation fails. Components are
+layered there (runtime payload / runtime pack / reference-only / build-only), so build
+tooling is not presented as something embedded in the executable. This file is the
+human-readable summary; the inventory is the part tied to the artifact.
+
+Completeness is bounded by what the vendor packages themselves contain: the generator
+ships every license/notice file it finds plus every nuspec-declared license target, and
+fails loudly on an unresolved component or a declared file it cannot ship. It cannot
+certify that a vendor's own package is complete.
 
 > **Formal legal review status: NOT performed.** The inventory is a *technical completeness*
 > artifact — it proves which vendor files exist for which embedded component and ships them.

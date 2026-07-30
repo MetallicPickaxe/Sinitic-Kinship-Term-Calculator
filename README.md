@@ -196,24 +196,35 @@ tree and provenance-seals the executable to the commit it was built from. Releas
 are made from a fresh clone of the **public** repository, so the embedded commit hash is
 resolvable in public history.
 
-**Reproducibility.** The toolchain is pinned in `Script\toolchain.lock.json` (SDK version,
-MSBuild version, runtime-pack version, Windows App SDK version) and the publish refuses to
-run unless the resolved toolchain matches; `global.json` disables SDK roll-forward and
-`UI.csproj` pins `RuntimeFrameworkVersion`, because leaving the runtime pack to float
-changed the shipped bytes of the *same commit* between builds. Line endings are pinned by
+**Reproducibility.** The toolchain is pinned in `Script\toolchain.lock.json` — SDK version
+*and commit*, MSBuild version *and SHA-256*, the SDK Roslyn `csc.dll` SHA-256, plus the
+expected runtime-pack and Windows App SDK versions — and the publish refuses to run unless
+the resolved toolchain matches **exactly** (identity, not a version prefix). `global.json`
+disables SDK roll-forward and `UI.csproj` declares the runtime-pack patch via
+`KnownRuntimePack` (not `RuntimeFrameworkVersion`, which the Windows SDK targets reuse for
+their own reference pack), because leaving the runtime pack to float changed the shipped
+bytes of the *same commit* between builds. The expected runtime-pack and Windows App SDK
+values are cross-checked against the artifact's own `deps.json` and resolved graph, so an
+edited pin cannot be copied into `BUILDINFO` unverified. Line endings are pinned by
 `.gitattributes` (`eol=lf`) and the release ZIP is built deterministically (entries sorted,
 every timestamp fixed to the commit time). Under that pin, the same commit yields
 byte-identical **unsigned** loose assets and ZIP from any fresh clone — signing (especially
 countersigned timestamping) necessarily changes the executable and therefore the ZIP, so
-the byte-identity claim applies to the pre-signature artifacts. Every package carries a
-`BUILDINFO.txt` recording the commit, the resolved toolchain, the runtime pack, and the
-hashes of the toolchain lock, publish script and licensing inventory.
+the byte-identity claim applies to the pre-signature artifacts, and it is a claim about
+*this pinned toolchain*, not about any machine. Every package carries a `BUILDINFO.txt`
+recording the commit, the full resolved toolchain identity (SDK version + commit, MSBuild
+version + SHA-256, Roslyn `csc.dll` SHA-256), the runtime pack, and the hashes of the
+toolchain lock, publish script and licensing inventory.
 
 An optional `-SignCommand` hook signs the staged executable at the only correct point —
 before hashing and zipping — and the publish fails unless the signature verifies.
-`Script\Test-PublishFaultInjection.ps1` proves the swap is transactional: failures injected
-at signing, before the swap and between the two renames all leave `Distribution\` intact
-with no staging debris.
+**No build step may write the live `Distribution\`**: the package is assembled in staging
+and swapped in by rename only after everything is hashed, and the publish additionally
+snapshots the live directory before building and refuses to swap if anything changed it
+meanwhile. `Script\Test-PublishFaultInjection.ps1` proves this: it advances `HEAD` so the
+rebuilt executable necessarily differs, injects failures at signing, before the swap and
+between the two renames, and after each one re-verifies **every file** of the live package
+against a byte-level snapshot and recomputes **every** manifest entry.
 
 ### Reproducing the validation faces (optional, dev-only)
 

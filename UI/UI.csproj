@@ -120,31 +120,22 @@
 	</ItemGroup>
 
 	<!--
-		One-click distribution. After a Publish that used the Distribution profile
-		(PublishProductName set, PublishSingleFile on), copy the exe and the editable
-		Lexicon folder into the repository-level Distribution\ — the same layout that
-		Script\Publish-SingleFile.ps1 produces from the command line. Guarded on
-		PublishProductName so ordinary builds and the other profiles skip it.
+		REMOVED: the CopyToDistribution target (release audit F1).
+
+		It ran AfterTargets="Publish" and copied the freshly built exe + Lexicon straight
+		into the repository-level Distribution\ — i.e. into the LIVE release directory,
+		before Script\Publish-SingleFile.ps1 had even created its staging directory, and
+		therefore entirely outside that script's transaction. Consequences proved by the
+		audit: a publish that later failed (signing, or an injected fault) left the live
+		package with a NEW exe next to the OLD manifest, and the fault-injection test —
+		which only compared the manifest file's own hash and the file count — reported
+		PASSED. It also produced a structurally invalid package on its own: no BUILDINFO,
+		no licensing set, no manifest, no ZIP.
+
+		No target may write Distribution\. The release directory is produced exclusively by
+		Script\Publish-SingleFile.ps1, and only by an atomic rename once every artifact has
+		been assembled, signed and hashed in staging. A Visual Studio publish now leaves its
+		output in bin\...\publish\ (where it belongs) and does not touch the release path.
 	-->
-	<Target Name="CopyToDistribution" AfterTargets="Publish"
-			Condition="'$(PublishProductName)' != '' and '$(PublishSingleFile)' == 'true'">
-		<PropertyGroup>
-			<DistributionDir>$(MSBuildProjectDirectory)\..\Distribution</DistributionDir>
-			<LexiconSourceDir>$(MSBuildProjectDirectory)\..\Resource\Data\Lexicon</LexiconSourceDir>
-		</PropertyGroup>
-		<ItemGroup>
-			<!-- Grab whatever exe the publish produced by full path; the AssemblyName rename
-			     via PublishProductName does not always settle before this target resolves a
-			     name-based path, so match the file on disk instead. UI.exe is the WinUI host
-			     stub, never the app. -->
-			<PublishedExe Include="$([System.IO.Path]::GetFullPath('$(PublishDir)'))\*.exe"
-						  Exclude="$([System.IO.Path]::GetFullPath('$(PublishDir)'))\UI.exe" />
-			<LexiconFiles Include="$(LexiconSourceDir)\*.yaml;$(LexiconSourceDir)\*.yaml.txt" />
-		</ItemGroup>
-		<MakeDir Directories="$(DistributionDir);$(DistributionDir)\Lexicon" />
-		<Copy SourceFiles="@(PublishedExe)" DestinationFolder="$(DistributionDir)" OverwriteReadOnlyFiles="true" />
-		<Copy SourceFiles="@(LexiconFiles)" DestinationFolder="$(DistributionDir)\Lexicon" OverwriteReadOnlyFiles="true" />
-		<Message Importance="high" Text="Distribution ready: @(PublishedExe->'%(Filename)%(Extension)') + Lexicon\ (@(LexiconFiles->Count()) layers)" />
-	</Target>
 
 </Project>

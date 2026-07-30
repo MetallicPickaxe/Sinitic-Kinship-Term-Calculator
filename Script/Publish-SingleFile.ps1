@@ -38,14 +38,33 @@ $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.e
 $msbuild = & $vswhere -prerelease -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe | Select-Object -First 1
 if (-not $msbuild) { throw 'MSBuild.exe not found via vswhere (-prerelease).' }
 $msbuildVersion = (Get-Item $msbuild).VersionInfo.ProductVersion
-$sdkVersion = (& dotnet --version).Trim()
+# dotnet resolves the SDK from global.json in the CURRENT DIRECTORY. Run these from the
+# repository or they report whatever SDK is newest on the machine (an 11.0 preview here)
+# and the recorded identity would describe a compiler that never touched this build.
+Push-Location $repoRoot
+try {
+    $sdkVersion = (& dotnet --version).Trim()
+    $sdkInfo = & dotnet --info
+}
+finally { Pop-Location }
+$sdkBasePath = (($sdkInfo | Select-String -Pattern '^\s*Base Path:\s*(.+)$' | Select-Object -First 1).Matches.Groups[1].Value).Trim()
+$sdkCommit = (($sdkInfo | Select-String -Pattern '^\s*Commit:\s*([0-9a-f]+)' | Select-Object -First 1).Matches.Groups[1].Value).Trim()
+$roslyn = Join-Path $sdkBasePath 'Roslyn\bincore\csc.dll'
 $head = (git -C $repoRoot rev-parse HEAD).Trim()
 
-# ---- B2: toolchain must MATCH THE PIN. vswhere -latest and an SDK band both drift; a
-# release may not be built by "whatever is newest today".
+# ---- B2/F2: the toolchain must match the pin EXACTLY, by identity as well as by name.
+# A prefix comparison was accepting 18.9.10, 18.9.100-foreign and even "18.9.1evil"; and a
+# version string alone does not identify the bytes that actually compile the product, so
+# the compiler binaries are pinned by SHA-256 too.
+$msbuildSha = (Get-FileHash $msbuild -Algorithm SHA256).Hash
+$roslynSha = if (Test-Path $roslyn) { (Get-FileHash $roslyn -Algorithm SHA256).Hash } else { '(csc.dll not found)' }
+
 $toolchainErrors = @()
-if ($sdkVersion -ne $lock.sdkVersion) { $toolchainErrors += "SDK $sdkVersion != pinned $($lock.sdkVersion)" }
-if (-not $msbuildVersion.StartsWith($lock.msbuildVersion)) { $toolchainErrors += "MSBuild $msbuildVersion != pinned $($lock.msbuildVersion)*" }
+if ($sdkVersion -ne $lock.sdkVersion) { $toolchainErrors += "SDK version $sdkVersion != pinned $($lock.sdkVersion)" }
+if ($lock.sdkCommit -and $sdkCommit -ne $lock.sdkCommit) { $toolchainErrors += "SDK commit $sdkCommit != pinned $($lock.sdkCommit)" }
+if ($msbuildVersion -ne $lock.msbuildVersion) { $toolchainErrors += "MSBuild version $msbuildVersion != pinned $($lock.msbuildVersion)" }
+if ($lock.msbuildSha256 -and $msbuildSha -ne $lock.msbuildSha256) { $toolchainErrors += "MSBuild.exe SHA-256 $msbuildSha != pinned $($lock.msbuildSha256)" }
+if ($lock.roslynCscSha256 -and $roslynSha -ne $lock.roslynCscSha256) { $toolchainErrors += "Roslyn csc.dll SHA-256 $roslynSha != pinned $($lock.roslynCscSha256)" }
 if ($toolchainErrors.Count -gt 0) {
     Write-Output 'TOOLCHAIN MISMATCH (edit Script\toolchain.lock.json to re-pin deliberately):'
     $toolchainErrors | ForEach-Object { "  $_" }
@@ -53,14 +72,23 @@ if ($toolchainErrors.Count -gt 0) {
 }
 Write-Output "Toolchain pinned+verified: SDK $sdkVersion | MSBuild $msbuildVersion | runtime pack $($lock.runtimeFrameworkVersion) | HEAD $head"
 
-# ---- B1: regenerate the licensing inventory from the locked graph BEFORE the dirty
-# check. If the dependency graph moved, the regenerated files differ from the committed
-# ones, the tree goes dirty, and the publish refuses — an incomplete legal package can no
-# longer ship silently. (Requires a prior restore/build; the first run on a clean clone
-# regenerates it after the build below and is validated on the second pass.)
+# ---- Live-directory guard (release audit F1). A project target used to copy the fresh exe
+# into the live Distribution\ during Publish — outside this script's transaction — so a
+# later failure left a new exe beside the old manifest and the fault test still passed.
+# The target is gone; this snapshot makes any future writer impossible to miss: the live
+# directory must be byte-identical when the swap begins.
+function Get-TreeSnapshot([string]$dir) {
+    $snap = @{}
+    if (Test-Path $dir) {
+        Get-ChildItem $dir -Recurse -File | ForEach-Object {
+            $snap[$_.FullName.Substring($dir.Length + 1)] = (Get-FileHash $_.FullName -Algorithm SHA256).Hash
+        }
+    }
+    return $snap
+}
+$liveBefore = Get-TreeSnapshot $distribution
+
 $inventoryScript = Join-Path $repoRoot 'Utility\Scripts\Build-LicenseInventory.ps1'
-& $inventoryScript -Configuration Release -Rid $lock.targetRuntimeIdentifier | Out-Null
-if ($LASTEXITCODE -ne 0) { throw 'License inventory generation failed.' }
 
 # ---- Dirty-input rejection: the +sha stamp records HEAD, not the bytes compiled — the
 # audit built an uncommitted window-title edit into an EXE that still claimed HEAD. A
@@ -120,9 +148,12 @@ $rev = Get-ExeRevision $exe
 if ($rev -ne $head) { throw "PROVENANCE FAILED: exe stamped '$rev', HEAD is '$head'" }
 Write-Output "Artifact provenance-sealed to $head"
 
-# The inventory must also be current for the graph THIS build resolved (the pre-build run
-# above is skipped on a clone with no obj\ yet).
-& $inventoryScript -Configuration Release -Rid $lock.targetRuntimeIdentifier | Out-Null
+# ---- B1/F3: the licensing inventory is derived from THIS build's artifact (the release
+# deps.json names the runtime packs actually embedded), so it can only run after the
+# publish. It hard-fails on an unresolved component, a nuspec-declared license file that
+# is not shipped, or a toolchain pin that disagrees with the artifact.
+& $inventoryScript -Configuration Release -Rid $lock.targetRuntimeIdentifier -ProductName $ProductName | Out-Host
+if ($LASTEXITCODE -ne 0) { throw 'Publish refused: license inventory generation reported problems.' }
 $dirtyAfter = @(git -C $repoRoot status --porcelain)
 if ($dirtyAfter.Count -gt 0) {
     Write-Output 'LICENSING INVENTORY STALE (regenerate, review and commit before publishing):'
@@ -163,7 +194,10 @@ try {
         "commit: $head",
         "commitClean: true (publish refuses a dirty tree)",
         "sdkVersion: $sdkVersion",
+        "sdkCommit: $sdkCommit",
         "msbuildVersion: $msbuildVersion",
+        "msbuildSha256: $msbuildSha",
+        "roslynCscSha256: $roslynSha",
         "runtimeFrameworkVersion: $($lock.runtimeFrameworkVersion)",
         "windowsAppSdkVersion: $($lock.windowsAppSdkVersion)",
         "runtimeIdentifier: $($lock.targetRuntimeIdentifier)",
@@ -230,6 +264,22 @@ try {
     # ---- Transactional swap (B3). Everything above is verified BEFORE the live path is
     # touched. The window between the two renames is real, so the failure path restores
     # the previous Distribution instead of leaving the release path missing.
+    # Nothing may have touched the live release directory while we were building and
+    # staging (F1). If something did, the package on disk is already inconsistent —
+    # refuse rather than swap on top of it.
+    $liveNow = Get-TreeSnapshot $distribution
+    $drift = @()
+    foreach ($k in $liveBefore.Keys) {
+        if (-not $liveNow.ContainsKey($k)) { $drift += "removed: $k" }
+        elseif ($liveNow[$k] -ne $liveBefore[$k]) { $drift += "modified: $k" }
+    }
+    foreach ($k in $liveNow.Keys) { if (-not $liveBefore.ContainsKey($k)) { $drift += "added: $k" } }
+    if ($drift.Count -gt 0) {
+        Write-Output 'LIVE DISTRIBUTION WAS MODIFIED DURING THE BUILD (something writes outside the transaction):'
+        $drift | Select-Object -First 10 | ForEach-Object { "  $_" }
+        throw 'Publish refused: the live release directory changed before the swap.'
+    }
+
     if ($SimulateFailure -eq 'before-swap') { throw 'SIMULATED FAILURE: before swap' }
     if (Test-Path $distribution) {
         $old = "$distribution.old-" + [Guid]::NewGuid().ToString('N')
