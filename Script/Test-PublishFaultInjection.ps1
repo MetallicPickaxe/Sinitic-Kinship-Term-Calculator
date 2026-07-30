@@ -34,7 +34,10 @@ foreach ($point in 'sign', 'before-swap', 'mid-swap') {
     $exists = Test-Path (Join-Path $distribution 'SHA256SUMS.txt')
     $after = if ($exists) { (Get-FileHash (Join-Path $distribution 'SHA256SUMS.txt') -Algorithm SHA256).Hash } else { '(missing)' }
     $afterCount = if ($exists) { (Get-ChildItem $distribution -Recurse -File).Count } else { 0 }
-    $debris = @(Get-ChildItem $repoRoot -Directory -Filter 'Distribution.*' -ErrorAction SilentlyContinue)
+    # -Filter 'Distribution.*' uses Windows wildcard semantics and also matches the
+    # extension-less 'Distribution' itself; compare names explicitly instead.
+    $debris = @(Get-ChildItem $repoRoot -Directory -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -like 'Distribution.*' -and $_.Name -ne 'Distribution' })
 
     if (-not $exists) { Write-Output '  FAIL: Distribution is missing'; $failures++ }
     elseif ($after -ne $before) { Write-Output "  FAIL: Distribution changed ($after)"; $failures++ }
