@@ -6,9 +6,9 @@ plus the build's own `*.deps.json` (runtime packs embedded by the self-contained
 publish). It is not hand-maintained and therefore cannot drift from the artifact.
 
 - Target: `net10.0-windows10.0.26100/win-x64`
-- Components: **30**
-- Components shipping license/notice files: **23**
-- Files reproduced under `ThirdPartyLicenses\`: **33**
+- Components: **31**
+- Components shipping license/notice files: **24**
+- Files reproduced under `ThirdPartyLicenses\`: **34**
 
 > **Legal review status:** this inventory is a *technical completeness* artifact —
 > it proves which vendor files exist for which embedded component and ships them.
@@ -32,6 +32,7 @@ publish). It is not hand-maintained and therefore cannot drift from the artifact
 | Microsoft.Extensions.FileProviders.Physical | 2.0.0 | package | url: https://raw.githubusercontent.com/aspnet/Home/2.0.0/LICENSE.txt | — *(none in package)* |
 | Microsoft.Extensions.FileSystemGlobbing | 2.0.0 | package | url: https://raw.githubusercontent.com/aspnet/Home/2.0.0/LICENSE.txt | — *(none in package)* |
 | Microsoft.Extensions.Primitives | 10.0.0 | package | expression: MIT | `THIRD-PARTY-NOTICES.TXT` |
+| Microsoft.NET.ILLink.Tasks | 10.0.10 | package | expression: MIT | `THIRD-PARTY-NOTICES.TXT` |
 | Microsoft.NETCore.App.Runtime.win-x64 | 10.0.10 | runtime pack | expression: MIT | `LICENSE.TXT`<br>`THIRD-PARTY-NOTICES.TXT` |
 | Microsoft.Web.WebView2 | 1.0.3719.77 | package | file: LICENSE.txt | `LICENSE.txt`<br>`NOTICE.txt` |
 | Microsoft.Windows.AI.MachineLearning | 2.1.74 | package | file: license.txt | `license.txt`<br>`ThirdPartyNotices.txt` |
@@ -64,6 +65,7 @@ publish). It is not hand-maintained and therefore cannot drift from the artifact
 | `ThirdPartyLicenses/Microsoft.Extensions.DependencyInjection.10.0.0/THIRD-PARTY-NOTICES.TXT` | 78041 | `6D15E10A101C6BFFF2AB4429ED061BF76C456FC4B23AD6B03E0D0F8377148A21` |
 | `ThirdPartyLicenses/Microsoft.Extensions.DependencyInjection.Abstractions.10.0.0/THIRD-PARTY-NOTICES.TXT` | 78041 | `6D15E10A101C6BFFF2AB4429ED061BF76C456FC4B23AD6B03E0D0F8377148A21` |
 | `ThirdPartyLicenses/Microsoft.Extensions.Primitives.10.0.0/THIRD-PARTY-NOTICES.TXT` | 78041 | `6D15E10A101C6BFFF2AB4429ED061BF76C456FC4B23AD6B03E0D0F8377148A21` |
+| `ThirdPartyLicenses/Microsoft.NET.ILLink.Tasks.10.0.10/THIRD-PARTY-NOTICES.TXT` | 78041 | `6D15E10A101C6BFFF2AB4429ED061BF76C456FC4B23AD6B03E0D0F8377148A21` |
 | `ThirdPartyLicenses/Microsoft.NETCore.App.Runtime.win-x64.10.0.10/LICENSE.TXT` | 1139 | `D7A68596AB69B06F51CA278A6545148E4269A9381C26D597C13DF5D88E08CF5B` |
 | `ThirdPartyLicenses/Microsoft.NETCore.App.Runtime.win-x64.10.0.10/THIRD-PARTY-NOTICES.TXT` | 78041 | `6D15E10A101C6BFFF2AB4429ED061BF76C456FC4B23AD6B03E0D0F8377148A21` |
 | `ThirdPartyLicenses/Microsoft.Web.WebView2.1.0.3719.77/LICENSE.txt` | 1487 | `0AF8F1B807512AAE39C2AC1AA4D0CAE65CABECB6FD554B8439A5162A0D6ECA55` |

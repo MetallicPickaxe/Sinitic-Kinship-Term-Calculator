@@ -21,7 +21,25 @@ $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $assetsPath = Join-Path $repoRoot 'UI\obj\project.assets.json'
-if (-not (Test-Path $assetsPath)) { throw "project.assets.json missing — restore the UI project first: $assetsPath" }
+
+# project.assets.json is RESTORE-CONTEXT DEPENDENT: a release publish restore pulls
+# packages a plain debug restore does not (Microsoft.NET.ILLink.Tasks, used by the
+# single-file/trim analysis, is the live example). Reading whatever the last restore
+# happened to leave behind made the inventory flip between runs and the publish then
+# refused its own freshly generated inventory. So resolve the graph the way the RELEASE
+# resolves it, every time.
+$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+$msbuild = & $vswhere -prerelease -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe | Select-Object -First 1
+if (-not $msbuild) { throw 'MSBuild.exe not found via vswhere (-prerelease).' }
+& $msbuild (Join-Path $repoRoot 'UI\UI.csproj') -t:Restore `
+    "-p:Configuration=$Configuration" -p:Platform=x64 "-p:RuntimeIdentifier=$Rid" `
+    -p:SelfContained=true -p:WindowsAppSDKSelfContained=true -p:PublishSingleFile=true `
+    -p:IncludeNativeLibrariesForSelfExtract=true -p:PublishTrimmed=false `
+    -p:PublishReadyToRun=false -p:WindowsPackageType=None -p:PublishProfile= `
+    -v:quiet -nologo | Out-Null
+if ($LASTEXITCODE -ne 0) { throw "Restore for the inventory failed with $LASTEXITCODE" }
+
+if (-not (Test-Path $assetsPath)) { throw "project.assets.json missing after restore: $assetsPath" }
 $assets = Get-Content $assetsPath -Raw | ConvertFrom-Json
 
 $targetName = $assets.targets.PSObject.Properties.Name | Where-Object { $_ -match [regex]::Escape($Rid) + '$' } | Select-Object -First 1

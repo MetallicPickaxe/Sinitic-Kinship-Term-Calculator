@@ -59,10 +59,8 @@ Write-Output "Toolchain pinned+verified: SDK $sdkVersion | MSBuild $msbuildVersi
 # longer ship silently. (Requires a prior restore/build; the first run on a clean clone
 # regenerates it after the build below and is validated on the second pass.)
 $inventoryScript = Join-Path $repoRoot 'Utility\Scripts\Build-LicenseInventory.ps1'
-$assetsPath = Join-Path $repoRoot 'UI\obj\project.assets.json'
-if (Test-Path $assetsPath) {
-    & $inventoryScript -Configuration Release -Rid $lock.targetRuntimeIdentifier | Out-Null
-}
+& $inventoryScript -Configuration Release -Rid $lock.targetRuntimeIdentifier | Out-Null
+if ($LASTEXITCODE -ne 0) { throw 'License inventory generation failed.' }
 
 # ---- Dirty-input rejection: the +sha stamp records HEAD, not the bytes compiled — the
 # audit built an uncommitted window-title edit into an EXE that still claimed HEAD. A
