@@ -249,7 +249,9 @@ $staging = Join-Path $repoRoot ("Distribution.staging-" + [Guid]::NewGuid().ToSt
         "msbuildSha256: $msbuildSha",
         "roslynCscSha256: $roslynSha",
         "visualStudio: $vsVersion",
-        "pathMap: repository root mapped to /_/ (Directory.Build.props) — build is location-independent",
+        # BUILDINFO is written as ASCII so it is byte-stable everywhere; keep the text ASCII
+        # too, or non-ASCII punctuation lands in the shipped file as '?'.
+        "pathMap: repository root mapped to /_/ (Directory.Build.props) - build is location-independent",
         "runtimeFrameworkVersion: $($lock.runtimeFrameworkVersion)",
         "windowsAppSdkVersion: $($lock.windowsAppSdkVersion)",
         "runtimeIdentifier: $($lock.targetRuntimeIdentifier)",
