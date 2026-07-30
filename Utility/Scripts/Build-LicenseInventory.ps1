@@ -7,11 +7,10 @@
 # family and Windows AI MachineLearning, each carrying its own license/NOTICE files. A
 # hand-maintained list cannot track that graph; this script derives it.
 #
-# Sources of truth:
-#   UI\obj\project.assets.json                     — resolved PackageReference closure
-#   UI\obj\<cfg>\<tfm>\<rid>\*.deps.json           — runtime packs actually embedded
-# Both are build outputs of the very publish being shipped, so the inventory cannot
-# drift from the artifact.
+# Sources of truth (both deterministic — the inventory must be a pure function of them,
+# or the publish's dirty gate would fire on unrelated build activity):
+#   UI\obj\project.assets.json    — the resolved PackageReference closure for the shipped RID
+#   Script\toolchain.lock.json    — the pinned runtime-pack version the publish embeds
 param(
     [string]$Configuration = 'Release',
     [string]$Rid = 'win-x64'
@@ -38,30 +37,22 @@ foreach ($p in $assets.targets.$targetName.PSObject.Properties) {
     $components["$id/$ver"] = [pscustomobject]@{ Id = $id; Version = $ver; Kind = 'package' }
 }
 
-# 2. Runtime packs embedded by the self-contained publish (from the build's own deps.json).
-$depsFile = Get-ChildItem (Join-Path $repoRoot "UI\obj\x64\$Configuration") -Recurse -Filter '*.deps.json' -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -match [regex]::Escape($Rid) } | Sort-Object LastWriteTime -Descending | Select-Object -First 1
-if (-not $depsFile) { throw "No deps.json found for $Configuration/$Rid — build the UI project first." }
-$deps = Get-Content $depsFile.FullName -Raw | ConvertFrom-Json
-$depsTarget = $deps.targets.PSObject.Properties | Select-Object -Last 1
-foreach ($e in $depsTarget.Value.PSObject.Properties) {
-    if ($e.Name -notlike 'runtimepack.*') { continue }
-    $bare = $e.Name -replace '^runtimepack\.', ''
-    $id, $ver = $bare -split '/', 2
-    $components["$id/$ver"] = [pscustomobject]@{ Id = $id; Version = $ver; Kind = 'runtime pack' }
-}
-# The desktop runtime pack accompanies the app runtime pack for WinUI self-contained
-# publishes but is not always named in deps.json; include it at the same version when
-# it is present in the package cache.
-$appPack = $components.Values | Where-Object { $_.Id -eq 'Microsoft.NETCore.App.Runtime.' + $Rid } | Select-Object -First 1
-if ($appPack) {
-    $desktopId = "Microsoft.WindowsDesktop.App.Runtime.$Rid"
+# 2. Runtime packs embedded by the self-contained publish. Taken from the PINNED toolchain,
+# not from a deps.json: several deps.json files coexist under obj\ (one per assembly name
+# the project has been built under), the newest flips depending on what ran last, and the
+# inventory would then change without the dependency graph changing — which the publish's
+# dirty gate reads as "stale inventory". The pin in Script\toolchain.lock.json IS what the
+# build embeds (UI.csproj declares the same patch via KnownRuntimePack), so it is both
+# deterministic and accurate.
+$toolchain = Get-Content (Join-Path $repoRoot 'Script\toolchain.lock.json') -Raw | ConvertFrom-Json
+$runtimeVersion = $toolchain.runtimeFrameworkVersion
+foreach ($packId in @("Microsoft.NETCore.App.Runtime.$Rid", "Microsoft.WindowsDesktop.App.Runtime.$Rid")) {
+    $found = $false
     foreach ($folder in $packageFolders) {
-        if (Test-Path (Join-Path $folder "$desktopId\$($appPack.Version)")) {
-            $components["$desktopId/$($appPack.Version)"] = [pscustomobject]@{ Id = $desktopId; Version = $appPack.Version; Kind = 'runtime pack' }
-            break
-        }
+        if (Test-Path (Join-Path $folder "$packId\$runtimeVersion")) { $found = $true; break }
     }
+    if (-not $found) { throw "Pinned runtime pack not in the package cache: $packId/$runtimeVersion" }
+    $components["$packId/$runtimeVersion"] = [pscustomobject]@{ Id = $packId; Version = $runtimeVersion; Kind = 'runtime pack' }
 }
 
 Write-Output "Dependency graph: $($components.Count) components ($targetName)"
@@ -175,8 +166,12 @@ if ($missing.Count -gt 0) {
 }
 $doc.Add('')
 
+# WriteAllText, not Set-Content: Set-Content re-joins the input with the platform newline,
+# producing CRLF, which then fights .gitattributes (eol=lf) and leaves the tree dirty after
+# every regeneration — which in turn blocks the publish's dirty gate.
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 $docPath = Join-Path $repoRoot 'LICENSE-INVENTORY.md'
-Set-Content $docPath ($doc -join "`n") -Encoding utf8NoBOM
+[IO.File]::WriteAllText($docPath, ($doc -join "`n") + "`n", $utf8NoBom)
 
 # The .NET-on-Windows note is EMITTED here rather than hand-placed in ThirdPartyLicenses\:
 # this script wipes and rebuilds that folder, so anything hand-dropped into it would be
@@ -203,6 +198,6 @@ $dotnetNote = @(
     'the `Microsoft.WindowsAppSDK.*` folders.',
     ''
 )
-Set-Content (Join-Path $outDir 'DotNet-Windows-Licensing.md') ($dotnetNote -join "`n") -Encoding utf8NoBOM
+[IO.File]::WriteAllText((Join-Path $outDir 'DotNet-Windows-Licensing.md'), ($dotnetNote -join "`n") + "`n", $utf8NoBom)
 Write-Output "Inventory written: LICENSE-INVENTORY.md ($($rows.Count) components, $(($rows | ForEach-Object { $_.Files.Count } | Measure-Object -Sum).Sum) files under ThirdPartyLicenses\)"
 if ($missing.Count -gt 0) { Write-Output "UNRESOLVED: $($missing.Count) component(s)"; $missing | ForEach-Object { "  $_" } }

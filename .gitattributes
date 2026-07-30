@@ -9,3 +9,10 @@
 *.xlsx binary
 *.sqlite3 binary
 *.pfx binary
+
+# Vendor license and notice texts are reproduced VERBATIM from the packages they came
+# with — they are legal documents, not project source, and their SHA-256 in
+# LICENSE-INVENTORY.md is the vendor file's own hash. Normalising their line endings
+# would both alter a legal text and make every regeneration dirty the tree.
+ThirdPartyLicenses/** -text
+
