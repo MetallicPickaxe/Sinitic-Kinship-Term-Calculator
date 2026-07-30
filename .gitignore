@@ -39,4 +39,6 @@ Resource/Data/Reference/MumuyModeMapAccuracyCompact.Unsupported.tsv
 *.pre-refresh.bak
 __pycache__/
 Distribution.staging-*/
+Distribution.parked-*/
+Distribution.old-*/
 packages.lock.json

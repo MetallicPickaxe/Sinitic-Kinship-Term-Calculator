@@ -94,11 +94,18 @@ try {
         Write-Output ''
         Write-Output "--- injecting failure at: $point"
         $threw = $false
-        $output = @()
+        # Collect INCREMENTALLY: when the publish throws, an "$output = ... | ForEach-Object"
+        # assignment never completes and the captured output is lost — which made this test
+        # report "injection point never reached" for points it had in fact reached. The
+        # terminating exception's own message is added too, since the token is thrown.
+        $output = New-Object System.Collections.Generic.List[string]
         try {
-            $output = & $publish -SimulateFailure $point *>&1 | ForEach-Object { "$_" }
+            & $publish -SimulateFailure $point *>&1 | ForEach-Object { $output.Add("$_") }
         }
-        catch { $threw = $true }
+        catch {
+            $threw = $true
+            $output.Add("$($_.Exception.Message)")
+        }
         $output | Where-Object { $_ -match 'ROLLBACK|SIMULATED FAILURE|LIVE DISTRIBUTION' } | ForEach-Object { "    $_" }
 
         # (0) the run must have failed AT THE INJECTED STAGE, not somewhere earlier
