@@ -1,0 +1,18 @@
+{
+  "_comment": [
+    "Release toolchain pin (release audit B2). A release build must be reproducible from",
+    "the public commit alone, so the publish script REFUSES to build unless the resolved",
+    "toolchain matches these values exactly. Changing any of them is a deliberate re-pin:",
+    "edit this file, rebuild, and re-verify byte-identical reproduction from two fresh",
+    "clones before shipping.",
+    "sdkVersion is additionally enforced by global.json (rollForward: disable); the runtime",
+    "pack patch by UI.csproj (KnownRuntimePack); the NuGet graph by exact PackageReference",
+    "versions, recorded per release in LICENSE-INVENTORY.md (regenerated, diffed and shipped",
+    "by the publish) and hashed into each package's BUILDINFO.txt."
+  ],
+  "sdkVersion": "10.0.110",
+  "msbuildVersion": "18.9.1",
+  "runtimeFrameworkVersion": "10.0.10",
+  "windowsAppSdkVersion": "2.3.1",
+  "targetRuntimeIdentifier": "win-x64"
+}

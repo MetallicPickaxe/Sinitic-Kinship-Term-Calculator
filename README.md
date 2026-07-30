@@ -150,14 +150,23 @@ finite set and stops; we compute past its edge, mark the boundary plainly (a des
 | Terminal-gender consistency (random chains) | **0 / 7,500** | an oracle-free metamorphic invariant that started life as a 1.13% defect gauge; the structure-collapsing shortcuts behind it were retired across two audit rounds and the run (fixed seed, deterministic) now asserts exactly zero |
 
 `Utility\Scripts\Run-ValidationLoop.ps1` enforces these as **hard gates** (any failure exits
-nonzero): build/restore/test exit codes; suite totals at or above the recorded floor with zero
-failures; binaries resolved at deterministic paths and **provenance-sealed** — each assembly's
-embedded source revision must equal the current git HEAD, so a stale or back-dated binary is
-rejected outright; the 90k TSV is deleted before the run and checked after for freshness, its
-exact 90,042 row count, and a legal judgment vocabulary; the 438 face must contain exactly 438
-judged rows. Metrics are reported split: a *primary-answer mismatch* whose reference term is
-still served among our candidates (marked 候選命中) is disclosed separately from a genuine
-*served miss*; the gates bind the served-miss counts (438 ≤ 0, 90k ratcheted).
+nonzero):
+
+- **Suites by exact fingerprint** — passed/failed/skipped must match the committed baseline
+  exactly (not a floor), so an `[Ignore]`d test is red, not absorbed. The metamorphic
+  invariant is additionally run alone by fully-qualified name with a 1/0/0 fingerprint, and
+  overriding any baseline from the command line requires an explicit
+  `-AllowBaselineOverride`.
+- **Provenance** — binaries resolved at deterministic paths, each assembly's embedded source
+  revision must equal the current git HEAD, and the tree must be clean; the three mumuy
+  oracle inputs are hash-verified before anything is measured.
+- **Face integrity** — the 90k TSV is deleted before the run and checked after for freshness,
+  its exact 90,042 row count and a closed judgment vocabulary (matched by exact segment); the
+  438 face must contain exactly 438 judged rows under the same vocabulary.
+- **All three mismatch counters ratchet on both faces** — primary-answer mismatches,
+  candidate-served hits, and genuine served misses each have their own ceiling (438: 23 / 23
+  / 0, 90k: 3,601 / 34 / 3,567). Gating served misses alone would let every primary answer
+  rot into a "candidate-served" hit and still pass.
 
 None of these, alone or together, certifies the un-attested tail — the 438 set is what a human
 curated, the 90k set measures agreement only where mumuy speaks, and the metamorphic gauges measure
@@ -180,16 +189,31 @@ MSBuild is resolved via `vswhere -latest -prerelease` (a deliberate newest-toolc
 both scripts print the resolved MSBuild version and git HEAD so every run records its toolchain.
 The publish script assembles the whole distributable unit in fresh, whitelist-driven staging:
 the executable, the editable `Lexicon\` layers, `LICENSE`, `ATTRIBUTION.md`,
-`THIRD-PARTY-NOTICES.md`, a release ZIP preserving that structure, and
+`THIRD-PARTY-NOTICES.md`, `LICENSE-INVENTORY.md` with the per-component
+`ThirdPartyLicenses\` tree, `BUILDINFO.txt`, a release ZIP preserving that structure, and
 `SHA256SUMS.txt` covering every one of them (ZIP included). It refuses to run on a dirty
 tree and provenance-seals the executable to the commit it was built from. Release builds
 are made from a fresh clone of the **public** repository, so the embedded commit hash is
-resolvable in public history. Line endings are pinned by `.gitattributes` (`eol=lf`) and
-the release ZIP is built deterministically (entries sorted, every timestamp fixed to the
-commit time), so the same commit built with the same toolchain yields byte-identical
-loose assets **and** ZIP in any clone. An optional `-SignCommand` hook signs the staged
-executable at the only correct point — before hashing and zipping — and the publish fails
-unless the signature verifies.
+resolvable in public history.
+
+**Reproducibility.** The toolchain is pinned in `Script\toolchain.lock.json` (SDK version,
+MSBuild version, runtime-pack version, Windows App SDK version) and the publish refuses to
+run unless the resolved toolchain matches; `global.json` disables SDK roll-forward and
+`UI.csproj` pins `RuntimeFrameworkVersion`, because leaving the runtime pack to float
+changed the shipped bytes of the *same commit* between builds. Line endings are pinned by
+`.gitattributes` (`eol=lf`) and the release ZIP is built deterministically (entries sorted,
+every timestamp fixed to the commit time). Under that pin, the same commit yields
+byte-identical **unsigned** loose assets and ZIP from any fresh clone — signing (especially
+countersigned timestamping) necessarily changes the executable and therefore the ZIP, so
+the byte-identity claim applies to the pre-signature artifacts. Every package carries a
+`BUILDINFO.txt` recording the commit, the resolved toolchain, the runtime pack, and the
+hashes of the toolchain lock, publish script and licensing inventory.
+
+An optional `-SignCommand` hook signs the staged executable at the only correct point —
+before hashing and zipping — and the publish fails unless the signature verifies.
+`Script\Test-PublishFaultInjection.ps1` proves the swap is transactional: failures injected
+at signing, before the swap and between the two renames all leave `Distribution\` intact
+with no staging debris.
 
 ### Reproducing the validation faces (optional, dev-only)
 

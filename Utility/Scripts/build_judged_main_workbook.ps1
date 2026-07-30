@@ -95,10 +95,10 @@ try {
 
     [IO.File]::WriteAllLines($judgedTsv, $out, (New-Object System.Text.UTF8Encoding($false)))
 
-    # 4. Backup + pack.
-    if (Test-Path $workbook) { Copy-Item $workbook $backup -Force }
-    & py $packScript --compact $judgedTsv --unsupported $unsupportedTsv --output $workbook | Out-Host
-    if ($LASTEXITCODE -ne 0) { throw "pack_tsv_pair_to_xlsx failed with $LASTEXITCODE" }
+    # 4. JUDGE FIRST, WRITE LAST (release audit N2). The tracked workbook used to be
+    # overwritten here, before any gate ran, so a run that was about to fail red still
+    # left a rewritten tracked artifact behind. Everything below decides pass/fail; the
+    # workbook is only replaced once every gate has held.
 
     # 5. Judgment distribution summary — over the CLOSED legal vocabulary, matched by
     # EXACT SEGMENT, not prefix. StartsWith let 一致TYPO count as 一致 (the audit proved
@@ -139,6 +139,16 @@ try {
     if ($MaxMismatch -ge 0 -and $servedMiss -gt $MaxMismatch) {
         throw "438 GATE FAILED: $servedMiss served misses > $MaxMismatch"
     }
+
+    # 6. Every gate held — only now is the tracked workbook replaced (N2). The pack runs
+    # into the temp work dir first, so even a packer failure cannot damage the tracked
+    # artifact; the previous workbook is kept as .pre-refresh.bak.
+    $stagedWorkbook = Join-Path $work 'MumuyMainAccuracyCompact.xlsx'
+    & py $packScript --compact $judgedTsv --unsupported $unsupportedTsv --output $stagedWorkbook | Out-Host
+    if ($LASTEXITCODE -ne 0) { throw "pack_tsv_pair_to_xlsx failed with $LASTEXITCODE" }
+    if (-not (Test-Path $stagedWorkbook)) { throw 'Packer produced no workbook' }
+    if (Test-Path $workbook) { Copy-Item $workbook $backup -Force }
+    Move-Item $stagedWorkbook $workbook -Force
 }
 finally {
     Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue

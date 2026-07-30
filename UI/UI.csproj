@@ -21,6 +21,23 @@
          PublishProductName overrides it when a publish wants a different exe name. -->
     <AssemblyName>SiniticKinshipTermCalculator</AssemblyName>
     <AssemblyName Condition="'$(PublishProductName)' != ''">$(PublishProductName)</AssemblyName>
+    <!-- Reproducibility pins (release audit B2). A self-contained publish embeds the
+         runtime pack, and the default TargetLatestRuntimePatch=true resolves "whatever
+         patch exists today" — it drifted 10.0.9 -> 10.0.10 between two builds of the SAME
+         commit and changed the shipped bytes. With this false, the runtime pack becomes a
+         pure function of the pinned SDK (global.json, rollForward disable).
+         NOTE: do NOT pin RuntimeFrameworkVersion here — the Windows SDK targets reuse that
+         property for the Microsoft.Windows.SDK.NET.Ref PackageDownload and restore fails.
+         The lock file freezes the rest of the NuGet graph. -->
+    <!-- NOTE: no packages.lock.json. It oscillates here — the validation loop restores this
+         project transitively (Test-Unit references it) WITHOUT a RuntimeIdentifier while
+         the release publish restores it WITH win-x64, so the lock file rewrites itself
+         between the two and permanently dirties the tree, disabling the dirty gate that
+         protects the release. The graph is pinned by exact PackageReference versions, the
+         KnownRuntimePack patch above and the pinned SDK, and it is RECORDED per release in
+         LICENSE-INVENTORY.md (every resolved component + version), which the publish
+         regenerates, diffs, ships and hashes into BUILDINFO. -->
+
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,6 +52,24 @@
 
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
+  </ItemGroup>
+
+  <!-- Reproducibility pin for the embedded runtime pack (release audit B2). The default
+       "latest patch" resolution asked the feed what the newest patch was, so the SAME
+       commit embedded 10.0.9 in one build and 10.0.10 in the next and the shipped bytes
+       changed. Declaring the latest patch here makes the choice OURS: still a patched
+       runtime (not the 10.0.0 base a blanket TargetLatestRuntimePatch=false would pin),
+       but a fixed one. Bumping it is a deliberate edit, mirrored in
+       Script\toolchain.lock.json which the publish script enforces.
+       Note: RuntimeFrameworkVersion cannot be used for this — the Windows SDK targets
+       reuse that property for the Microsoft.Windows.SDK.NET.Ref PackageDownload. -->
+  <ItemGroup>
+    <KnownRuntimePack Update="Microsoft.NETCore.App"
+                      TargetFramework="net10.0"
+                      LatestRuntimeFrameworkVersion="10.0.10" />
+    <KnownRuntimePack Update="Microsoft.WindowsDesktop.App"
+                      TargetFramework="net10.0"
+                      LatestRuntimeFrameworkVersion="10.0.10" />
   </ItemGroup>
 
   <!--
