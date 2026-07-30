@@ -21,8 +21,13 @@ param(
     # a post-step, so the manifest always describes the bytes actually shipped.
     [string]$SignCommand = '',
     # Fault-injection points used by Script\Test-PublishFaultInjection.ps1 to prove the
-    # transactional swap. Never set during a real release.
-    [ValidateSet('', 'sign', 'before-swap', 'mid-swap')]
+    # release transaction. Each one prints "SIMULATED FAILURE: <point>" immediately before
+    # failing, and the test asserts that token — otherwise a failure at an EARLIER stage
+    # (a bad toolchain pin, say) would be scored as a successful injection, which the audit
+    # demonstrated. 'live-writer' reproduces the audit's out-of-transaction writer: it
+    # writes the release directory during the build and then fails.
+    # Never set during a real release.
+    [ValidateSet('', 'live-writer', 'sign', 'before-swap', 'mid-swap')]
     [string]$SimulateFailure = ''
 )
 
@@ -59,12 +64,27 @@ $head = (git -C $repoRoot rev-parse HEAD).Trim()
 $msbuildSha = (Get-FileHash $msbuild -Algorithm SHA256).Hash
 $roslynSha = if (Test-Path $roslyn) { (Get-FileHash $roslyn -Algorithm SHA256).Hash } else { '(csc.dll not found)' }
 
+$vsVersion = (& $vswhere -prerelease -latest -property catalog_productDisplayVersion | Select-Object -First 1)
+if ($vsVersion) { $vsVersion = $vsVersion.Trim() }
+
+# Every pinned field is REQUIRED. Guarding each check with "if the lock has the field"
+# meant a lock missing sdkCommit / msbuildSha256 / roslynCscSha256 silently disabled that
+# check — a pin that can be switched off by deleting a line is not a pin.
+$required = 'sdkVersion', 'sdkCommit', 'msbuildVersion', 'msbuildSha256', 'roslynCscSha256',
+            'visualStudioProductDisplayVersion', 'runtimeFrameworkVersion', 'windowsAppSdkVersion',
+            'targetRuntimeIdentifier'
+$missing = @($required | Where-Object { -not $lock.PSObject.Properties.Name.Contains($_) -or -not $lock.$_ })
+if ($missing.Count -gt 0) {
+    throw "Publish refused: Script\toolchain.lock.json is missing required pin(s): $($missing -join ', ')"
+}
+
 $toolchainErrors = @()
 if ($sdkVersion -ne $lock.sdkVersion) { $toolchainErrors += "SDK version $sdkVersion != pinned $($lock.sdkVersion)" }
-if ($lock.sdkCommit -and $sdkCommit -ne $lock.sdkCommit) { $toolchainErrors += "SDK commit $sdkCommit != pinned $($lock.sdkCommit)" }
+if ($sdkCommit -ne $lock.sdkCommit) { $toolchainErrors += "SDK commit $sdkCommit != pinned $($lock.sdkCommit)" }
 if ($msbuildVersion -ne $lock.msbuildVersion) { $toolchainErrors += "MSBuild version $msbuildVersion != pinned $($lock.msbuildVersion)" }
-if ($lock.msbuildSha256 -and $msbuildSha -ne $lock.msbuildSha256) { $toolchainErrors += "MSBuild.exe SHA-256 $msbuildSha != pinned $($lock.msbuildSha256)" }
-if ($lock.roslynCscSha256 -and $roslynSha -ne $lock.roslynCscSha256) { $toolchainErrors += "Roslyn csc.dll SHA-256 $roslynSha != pinned $($lock.roslynCscSha256)" }
+if ($msbuildSha -ne $lock.msbuildSha256) { $toolchainErrors += "MSBuild.exe SHA-256 $msbuildSha != pinned $($lock.msbuildSha256)" }
+if ($roslynSha -ne $lock.roslynCscSha256) { $toolchainErrors += "Roslyn csc.dll SHA-256 $roslynSha != pinned $($lock.roslynCscSha256)" }
+if ($vsVersion -ne $lock.visualStudioProductDisplayVersion) { $toolchainErrors += "Visual Studio $vsVersion != pinned $($lock.visualStudioProductDisplayVersion)" }
 if ($toolchainErrors.Count -gt 0) {
     Write-Output 'TOOLCHAIN MISMATCH (edit Script\toolchain.lock.json to re-pin deliberately):'
     $toolchainErrors | ForEach-Object { "  $_" }
@@ -100,6 +120,22 @@ if ($dirty.Count -gt 0) {
     throw 'Publish refused on a dirty tree.'
 }
 
+# ---- SINGLE RECOVERABLE BOUNDARY (release audit R1). The previous version only rechecked
+# the live directory inside the staging transaction, so a writer that touched
+# Distribution\ during Restore/Publish/inventory — then failed — exited before any check
+# and left the live package altered (the audit's probe target proved it: 49 -> 50 files).
+# Now the live directory is PARKED before the build even starts: the release path does not
+# exist while anything else runs, so an out-of-transaction writer can only create a NEW
+# directory, which is detected; and every exit path restores the parked package.
+$parked = $null
+if (Test-Path $distribution) {
+    $parked = "$distribution.parked-" + [Guid]::NewGuid().ToString('N')
+    Move-Item $distribution $parked
+    Write-Output "Live package parked for the duration of the build ($(Split-Path $parked -Leaf))"
+}
+$staging = $null
+try {
+
 # Restore MUST be a separate MSBuild invocation: a single -t:Restore,Publish call on a
 # clean clone evaluates the project before the restored WinUI/XAML source generators are
 # wired in, failing with CS5001 (no Main) / CS0103 (no InitializeComponent) on first run
@@ -126,6 +162,14 @@ $common = @(
 if ($LASTEXITCODE -ne 0) { throw "Restore failed with $LASTEXITCODE" }
 & $msbuild $project -t:Publish @common
 if ($LASTEXITCODE -ne 0) { throw "Publish failed with $LASTEXITCODE" }
+
+# Stands in for a build-stage writer that touches the release directory and then fails —
+# the exact shape the audit used to bypass the old in-transaction-only check.
+if ($SimulateFailure -eq 'live-writer') {
+    New-Item -ItemType Directory -Path $distribution -Force | Out-Null
+    Set-Content (Join-Path $distribution 'AUDIT-LIVE-WRITER.txt') 'out-of-transaction write before publish failure' -Encoding ascii
+    throw 'SIMULATED FAILURE: live-writer'
+}
 
 $publishDir = Join-Path $repoRoot "UI\bin\x64\Release\net10.0-windows10.0.26100.0\$($lock.targetRuntimeIdentifier)\publish"
 $exe = Join-Path $publishDir "$ProductName.exe"
@@ -154,6 +198,13 @@ Write-Output "Artifact provenance-sealed to $head"
 # is not shipped, or a toolchain pin that disagrees with the artifact.
 & $inventoryScript -Configuration Release -Rid $lock.targetRuntimeIdentifier -ProductName $ProductName | Out-Host
 if ($LASTEXITCODE -ne 0) { throw 'Publish refused: license inventory generation reported problems.' }
+
+# ---- R4: the expanded package cache the compiler and bundler actually read must still
+# match the signed .nupkg it came from. Recording restore metadata was not enough — the
+# audit swapped a DLL in the cache and produced a fully published, correctly stamped EXE.
+& (Join-Path $repoRoot 'Utility\Scripts\Test-PackageIntegrity.ps1') `
+    -Configuration Release -Rid $lock.targetRuntimeIdentifier -ProductName $ProductName | Out-Host
+if ($LASTEXITCODE -ne 0) { throw 'Publish refused: package integrity verification failed (see above).' }
 $dirtyAfter = @(git -C $repoRoot status --porcelain)
 if ($dirtyAfter.Count -gt 0) {
     Write-Output 'LICENSING INVENTORY STALE (regenerate, review and commit before publishing):'
@@ -162,10 +213,9 @@ if ($dirtyAfter.Count -gt 0) {
 }
 
 # ---- Assemble the distributable unit in FRESH whitelist staging on the SAME VOLUME as
-# Distribution\. The whole assembly + swap is transactional (B3).
+# Distribution\. The live path is parked (see above), so nothing here touches it until the
+# final rename.
 $staging = Join-Path $repoRoot ("Distribution.staging-" + [Guid]::NewGuid().ToString('N'))
-$old = $null
-try {
     New-Item -ItemType Directory -Path $staging | Out-Null
     New-Item -ItemType Directory -Path (Join-Path $staging 'Lexicon') | Out-Null
 
@@ -198,6 +248,8 @@ try {
         "msbuildVersion: $msbuildVersion",
         "msbuildSha256: $msbuildSha",
         "roslynCscSha256: $roslynSha",
+        "visualStudio: $vsVersion",
+        "pathMap: repository root mapped to /_/ (Directory.Build.props) — build is location-independent",
         "runtimeFrameworkVersion: $($lock.runtimeFrameworkVersion)",
         "windowsAppSdkVersion: $($lock.windowsAppSdkVersion)",
         "runtimeIdentifier: $($lock.targetRuntimeIdentifier)",
@@ -212,7 +264,7 @@ try {
 
     # Signing happens HERE — on the staged exe, before any hash or zip exists, so the
     # manifest always describes the shipped bytes.
-    if ($SimulateFailure -eq 'sign') { throw 'SIMULATED FAILURE: signing stage' }
+    if ($SimulateFailure -eq 'sign') { throw 'SIMULATED FAILURE: sign' }
     if ($SignCommand) {
         $stagedExe = Join-Path $staging "$ProductName.exe"
         $cmd = $SignCommand -f $stagedExe
@@ -261,44 +313,42 @@ try {
     }
     "$((Get-FileHash (Join-Path $staging $zipName) -Algorithm SHA256).Hash)  $zipName" | Add-Content $manifest -Encoding ascii
 
-    # ---- Transactional swap (B3). Everything above is verified BEFORE the live path is
-    # touched. The window between the two renames is real, so the failure path restores
-    # the previous Distribution instead of leaving the release path missing.
-    # Nothing may have touched the live release directory while we were building and
-    # staging (F1). If something did, the package on disk is already inconsistent —
-    # refuse rather than swap on top of it.
-    $liveNow = Get-TreeSnapshot $distribution
-    $drift = @()
-    foreach ($k in $liveBefore.Keys) {
-        if (-not $liveNow.ContainsKey($k)) { $drift += "removed: $k" }
-        elseif ($liveNow[$k] -ne $liveBefore[$k]) { $drift += "modified: $k" }
-    }
-    foreach ($k in $liveNow.Keys) { if (-not $liveBefore.ContainsKey($k)) { $drift += "added: $k" } }
-    if ($drift.Count -gt 0) {
-        Write-Output 'LIVE DISTRIBUTION WAS MODIFIED DURING THE BUILD (something writes outside the transaction):'
-        $drift | Select-Object -First 10 | ForEach-Object { "  $_" }
-        throw 'Publish refused: the live release directory changed before the swap.'
+    # ---- Final swap. The live path was parked before the build, so it must NOT exist now:
+    # if it does, something wrote the release directory outside this transaction (the
+    # audit's probe target did exactly that) and the run is refused.
+    if (Test-Path $distribution) {
+        $intruders = @(Get-ChildItem $distribution -Recurse -File | ForEach-Object { $_.FullName.Substring($distribution.Length + 1) })
+        Write-Output 'LIVE DISTRIBUTION WAS RECREATED DURING THE BUILD (something writes outside the transaction):'
+        $intruders | Select-Object -First 10 | ForEach-Object { "  $_" }
+        throw 'Publish refused: the live release directory was written outside the transaction.'
     }
 
-    if ($SimulateFailure -eq 'before-swap') { throw 'SIMULATED FAILURE: before swap' }
-    if (Test-Path $distribution) {
-        $old = "$distribution.old-" + [Guid]::NewGuid().ToString('N')
-        Move-Item $distribution $old
+    if ($SimulateFailure -eq 'before-swap') { throw 'SIMULATED FAILURE: before-swap' }
+    if ($SimulateFailure -eq 'mid-swap') {
+        # Simulate a crash in the middle of the swap: the staged package is renamed in and
+        # then the run fails, so the recovery path must remove it and restore the parked one.
+        Move-Item $staging $distribution
+        $staging = $null
+        throw 'SIMULATED FAILURE: mid-swap'
     }
-    if ($SimulateFailure -eq 'mid-swap') { throw 'SIMULATED FAILURE: between the two renames' }
     Move-Item $staging $distribution
-    $staging = $null   # ownership transferred; finally must not delete it
-    if ($old -and (Test-Path $old)) { Remove-Item $old -Recurse -Force; $old = $null }
+    $staging = $null   # ownership transferred; the recovery path must not delete it
+    if ($parked -and (Test-Path $parked)) { Remove-Item $parked -Recurse -Force; $parked = $null }
 }
 catch {
-    # Restore the previous Distribution if the swap was interrupted after it was moved
-    # aside, then drop the half-built staging. The release path is never left missing.
-    if ($old -and (Test-Path $old) -and -not (Test-Path $distribution)) {
-        Move-Item $old $distribution
-        Write-Output "ROLLBACK: previous Distribution restored from $(Split-Path $old -Leaf)"
-        $old = $null
+    # ---- Recovery for EVERY failure path, from before the restore through the swap.
+    # A half-swapped or intruder-created live directory is discarded and the parked
+    # package is renamed back, so the release path is never left missing, partial or
+    # polluted.
+    if ($parked -and (Test-Path $parked)) {
+        if (Test-Path $distribution) {
+            Remove-Item $distribution -Recurse -Force
+            Write-Output 'ROLLBACK: discarded the live directory written during this run'
+        }
+        Move-Item $parked $distribution
+        Write-Output "ROLLBACK: parked package restored to Distribution\"
+        $parked = $null
     }
-    if ($old -and (Test-Path $old)) { Remove-Item $old -Recurse -Force }
     if ($staging -and (Test-Path $staging)) {
         Remove-Item $staging -Recurse -Force
         Write-Output 'ROLLBACK: staging removed'
@@ -308,7 +358,10 @@ catch {
 
 $size = [Math]::Round((Get-Item (Join-Path $distribution "$ProductName.exe")).Length / 1MB, 1)
 $layerCount = (Get-ChildItem (Join-Path $distribution 'Lexicon') -Filter '*.yaml').Count
-$licenseCount = (Get-ChildItem (Join-Path $distribution 'ThirdPartyLicenses') -Recurse -File).Count
+# The generated .NET note is ours, not a vendor file — count them separately so the
+# summary line stops overstating the vendor set (audit R5).
+$licenseFiles = @(Get-ChildItem (Join-Path $distribution 'ThirdPartyLicenses') -Recurse -File)
+$vendorCount = @($licenseFiles | Where-Object { $_.Name -ne 'DotNet-Windows-Licensing.md' }).Count
 $entryCount = (Get-Content (Join-Path $distribution 'SHA256SUMS.txt')).Count
 $signState = if ($SignCommand) { 'signed' } else { 'UNSIGNED' }
-Write-Output "Published ($signState): Distribution\$ProductName.exe (${size} MB) + Lexicon\ ($layerCount layers) + $licenseCount vendor license files + BUILDINFO + ZIP | SHA256SUMS.txt ($entryCount entries)"
+Write-Output "Published ($signState): Distribution\$ProductName.exe (${size} MB) + Lexicon\ ($layerCount layers) + $vendorCount vendor license files + 1 generated note + BUILDINFO + ZIP | SHA256SUMS.txt ($entryCount entries)"

@@ -218,13 +218,20 @@ toolchain lock, publish script and licensing inventory.
 
 An optional `-SignCommand` hook signs the staged executable at the only correct point —
 before hashing and zipping — and the publish fails unless the signature verifies.
-**No build step may write the live `Distribution\`**: the package is assembled in staging
-and swapped in by rename only after everything is hashed, and the publish additionally
-snapshots the live directory before building and refuses to swap if anything changed it
-meanwhile. `Script\Test-PublishFaultInjection.ps1` proves this: it advances `HEAD` so the
-rebuilt executable necessarily differs, injects failures at signing, before the swap and
-between the two renames, and after each one re-verifies **every file** of the live package
-against a byte-level snapshot and recomputes **every** manifest entry.
+**The live `Distribution\` is parked before the build starts** and only reappears as the
+final rename of a fully assembled, hashed staging directory. Because the release path does
+not exist while restore, publish, inventory and integrity checks run, a build step that
+writes it can only create a new directory — which is detected and discarded — and every
+failure path restores the parked package. `Script\Test-PublishFaultInjection.ps1` proves
+this: it advances `HEAD` so the rebuilt executable necessarily differs, then injects
+failures at four points (an out-of-transaction writer during the build, signing, before the
+swap, and mid-swap), asserting for each that the *injected stage was actually reached*,
+that **every file** of the live package is byte-unchanged, that the manifest is consistent
+in **both** directions, and that no debris remains.
+
+Package integrity is verified before anything is staged: `Utility\Scripts\Test-PackageIntegrity.ps1`
+re-hashes every expanded file in the NuGet cache for the resolved graph against the signed
+`.nupkg` it came from, so a tampered dependency cannot reach the artifact.
 
 ### Reproducing the validation faces (optional, dev-only)
 

@@ -1,0 +1,29 @@
+<Project>
+
+  <!--
+    Location-independent builds (release audit R3/F2).
+
+    Roslyn's deterministic compilation hashes the SOURCE FILE PATHS into the assembly, so
+    the same commit produced a different application DLL — and therefore a different
+    single-file bundle ID and EXE — from every clone directory. The audit measured exactly
+    that: two clones agreed with each other but not with a package built elsewhere, and two
+    further clones (clone-c / clone-d) disagreed again. A controlled experiment confirmed
+    the cause: rebuilding twice in the SAME directory yields a byte-identical DLL, while a
+    different directory does not.
+
+    PathMap rewrites those embedded paths to a fixed virtual root, so the compilation sees
+    the same paths no matter where the repository is checked out. It applies to every
+    project in the repository (including generated sources under obj\, which live inside
+    the mapped root) so the whole graph is consistent.
+
+    Note the remaining scope limit, which is documented rather than hidden: this makes the
+    build location-independent on a pinned toolchain. Paths OUTSIDE the repository — the
+    NuGet package cache and the SDK — are not mapped, so cross-machine reproduction still
+    requires the frozen build environment listed as an open release item.
+  -->
+  <PropertyGroup>
+    <PathMap>$(MSBuildThisFileDirectory)=/_/</PathMap>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+</Project>
