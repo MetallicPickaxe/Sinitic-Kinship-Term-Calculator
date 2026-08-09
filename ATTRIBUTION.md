@@ -33,17 +33,37 @@ data layers** — never mixed into the rule layer:
 
 | File | Contents |
 |---|---|
-| `Resource/Data/Lexicon/dialect-south.yaml` | Southern colloquial layer. Its forms overlap heavily with mumuy (which is southern-leaning); the file header records this. |
+| `Resource/Data/Lexicon/*.yaml` | **Twelve variant layers, 785 entries, and most of that vocabulary was harvested from mumuy's term sets.** Each file header says so. |
+| `Resource/Data/Reference/LEXICON_PILOT_DECISIONS.tsv` | Every harvested candidate with its ruling: 1,231 adjudicated, 644 shipped, 517 excluded with the reason, 70 held pending independent classification. |
 | `Resource/Data/Reference/MumuyAbsorptionLedger.tsv` | Per-chain adjudication ledger: what we accepted, what we declined, and why. |
 | `Utility/MumuyAlgorithm/` | An in-repo port of mumuy's algorithm, used **only as a comparison oracle during verification**. It takes no part in product output. |
 
 **The rule layer (`KinshipCalculator.Core`) contains no vocabulary taken from mumuy.** All
 looked-up terms were moved out to YAML; only the word-formation machinery remains in code.
 
+Two things to be exact about, because an attribution document should err toward over-crediting:
+
+- **The words are mumuy's; the classification is ours.** mumuy's corpus carries no region or
+  register field at all — it lists a set of names per relation and nothing more. Every
+  「northern / Wu / Min / literary」 label in our layers is *this project's judgement*, arrived at
+  by hand, and can be wrong in a way mumuy is not responsible for. 70 terms we could not classify
+  confidently are held back rather than shipped with a guessed label.
+- **This grew a lot after the first release notes were written.** An earlier version of this
+  section named only `dialect-south.yaml`. That was accurate when written and is not now.
+
 ## 3. What we did not cover — and why
 
-Of the 90,042-row deep comparison, roughly **3,600 rows (4.0%)** still differ from mumuy's wording.
-**We deliberately did not flatten them:**
+Of the 90,042-row deep comparison, **3,535 rows (3.9%)** still differ from mumuy's wording.
+**We deliberately did not flatten them** — and it is worth being precise about what that number is,
+because "3,535 gaps on our side" would overstate both our defect and mumuy's authority:
+
+| Depth of the differing chain | Rows | What it means |
+|---|---|---|
+| we cannot name it at all | 256 | a descriptive `A-of-B-of-…` reading is all we produce. A real gap. |
+| 3–4 hops | 195 | shallow enough that attested vocabulary plausibly exists; the place to look first |
+| 5 hops and deeper | ~3,100 | **both sides are generating here.** Neither string is a word anyone says, and the disagreement is over composition: ours `甥孫眷外孫女` against mumuy's `甥外孙姻孙女` |
+
+The reasons below apply to all of it:
 
 | Reason | Explanation | Example |
 |---|---|---|

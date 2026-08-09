@@ -27,10 +27,33 @@ namespace UI
 	/// </summary>
 	public sealed partial class MainWindow : Window
 	{
+		/// <summary>
+		/// The window opens tall enough to hold what it actually shows.
+		///
+		/// At the default size the content did not fit: a 3x3 keypad and a control bar leave
+		/// roughly 235 pixels for the answer, which clips the second row of other-names and hides
+		/// a second reading entirely. The layout gives the answer whatever is left over, so
+		/// "whatever is left over" has to be worth having. Measured against the case that needs
+		/// the most room — 父→父→女, two readings of 姑母 with sixteen other names each.
+		///
+		/// Only the DEFAULT: the window stays freely resizable, and nothing depends on this size.
+		/// </summary>
+		private const Int32 DefaultWidthDips = 1180;
+		private const Int32 DefaultHeightDips = 1010;
+
 		public MainWindow ( MainViewModel viewModel )
 		{
 			InitializeComponent ();
 			ViewModel = viewModel;
+
+			// Clamped to the work area, so a small or scaled display never gets a window larger
+			// than the screen it opens on.
+			Microsoft.UI.Windowing.DisplayArea display = Microsoft.UI.Windowing.DisplayArea.GetFromWindowId (
+				AppWindow.Id , Microsoft.UI.Windowing.DisplayAreaFallback.Primary );
+
+			AppWindow.Resize ( new Windows.Graphics.SizeInt32 (
+				Math.Min ( DefaultWidthDips , display.WorkArea.Width - 40 ) ,
+				Math.Min ( DefaultHeightDips , display.WorkArea.Height - 40 ) ) );
 		}
 
 		public MainViewModel ViewModel { get; }

@@ -137,8 +137,15 @@ namespace Test_Unit
             var result = CreateCalculator().Evaluate(tokens, "zh-Hans", PersonGender.Male);
 
             Assert.AreEqual("姊妹姻父", result.Term.ForLanguage("zh-Hans"));
+            // The polite-address tail is whatever the layers register against 伯父/叔父, so it
+            // grows with the lexicon. Pin the STRUCTURE: the paraphrase leads, the two standard
+            // address words follow, and no word is offered twice (several regions share 大大).
             var colloquial = result.Options.First().AlternateLabel.ForLanguage("zh-Hans");
-            Assert.AreEqual("姊妹的公公|伯伯|叔叔", colloquial);
+            var parts = colloquial.Split('|');
+            Assert.AreEqual("姊妹的公公", parts[0]);
+            CollectionAssert.Contains(parts, "伯伯");
+            CollectionAssert.Contains(parts, "叔叔");
+            CollectionAssert.AllItemsAreUnique(parts, $"duplicate address form in: {colloquial}");
         }
         [TestMethod]
         public void OlderSisterSonSpouseYoungerSisterDaughter()

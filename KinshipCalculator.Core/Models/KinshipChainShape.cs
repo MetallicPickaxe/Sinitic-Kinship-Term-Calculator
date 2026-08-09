@@ -27,7 +27,8 @@ public sealed class KinshipChainShape
 		Boolean leadingSpouse ,
 		Boolean trailingSpouse ,
 		PersonGender egoGender ,
-		Boolean adoptiveAscent = false )
+		Boolean adoptiveAscent = false ,
+		Boolean adoptiveDescent = false )
 	{
 		AscentGenders = ascentGenders;
 		Branch = branch;
@@ -36,6 +37,7 @@ public sealed class KinshipChainShape
 		TrailingSpouse = trailingSpouse;
 		EgoGender = egoGender;
 		AdoptiveAscent = adoptiveAscent;
+		AdoptiveDescent = adoptiveDescent;
 	}
 
 	/// <summary>Gender of each parent hop, in order from ego upward. Preserves 外-insertion positions.</summary>
@@ -57,6 +59,9 @@ public sealed class KinshipChainShape
 
 	/// <summary>At least one ascent hop is an adoptive link (drives the 養-prefix).</summary>
 	public Boolean AdoptiveAscent { get; }
+
+	/// <summary>At least one descent hop is an adoptive link (drives the 養-prefix downward: 養子/養女).</summary>
+	public Boolean AdoptiveDescent { get; }
 
 	public Int32 AscentDepth => AscentGenders.Count;
 

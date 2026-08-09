@@ -55,7 +55,37 @@ public static class KinshipScriptConverter
         ('輔', '辅'),
         ('離', '离'),
         ('歲', '岁'),
-        ('幾', '几')
+        ('幾', '几'),
+        // Characters the LEXICON LAYERS brought in (2026-08-02 pilot). The table above covers
+        // the engine's own composed vocabulary; a regional word carries characters the engine
+        // never writes, and an unmapped one survives into the Traditional rendering as-is
+        // (老汉 shown to a zh-Hant reader). Test-LexiconInvariants.ps1 fails on any layer
+        // character that is neither mapped here nor listed as script-neutral.
+        ('漢', '汉'),   // 老漢, 漢子
+        ('嬤', '嬷'),   // 阿嬤, 外嬤
+        ('亞', '亚'),   // 亞公, 亞婆
+        ('閨', '闺'),   // 閨女, 甥閨女
+        ('頭', '头'),   // 丫頭
+        ('竇', '窦'),   // 老竇
+        ('東', '东'),   // 東床
+        ('從', '从'),   // 從母
+        ('細', '细'),   // 細佬
+        ('愛', '爱'),   // 愛人
+        ('館', '馆'),   // 甥館
+        // Second lexicon batch (2026-08-02): the 連襟 family and the deep in-law lines.
+        ('擔', '担'),   // 一擔挑, 擔兒挑
+        ('兩', '两'),   // 兩橋
+        ('橋', '桥'),   // 連橋, 兩橋
+        ('婭', '娅'),   // 婭 -- 《爾雅》兩婿相謂
+        ('賢', '贤'),   // 賢內助
+        // ⚠ SENSE-DEPENDENT in general Chinese: 发 is 髮 (hair) in 髮妻 = 結髮之妻, but 發 almost
+        // everywhere else. This table is character-level and cannot split by sense, so the pair
+        // is only safe because 髮妻 is the sole 发 word in the whole kinship vocabulary. If a
+        // future batch brings a 發-sense word, the two cannot share this table -- the term must
+        // be authored in its Traditional form and this pair reconsidered. The lexicon character
+        // gate is what will surface that.
+        ('髮', '发'),   // 髮妻
+        ('彌', '弥')    // 彌甥 -- 《左傳》外甥之子
     };
 
     private static readonly Dictionary<char, char> ToHansMap = BuildMap(static pair => (pair.Hant, pair.Hans));

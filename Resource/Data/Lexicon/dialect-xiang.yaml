@@ -1,0 +1,47 @@
+# 湘語 · 湖南(「毑」「娭毑」系)
+#
+# 鍵 = 標準形(引擎算出的主位詞);值 = 該層的地方/語域形。本層可停用、可替換;
+# 停用後主位仍為標準漢語,不影響引擎正確性。
+#
+# 生成自 Resource\Data\Reference\LEXICON_PILOT_DECISIONS.tsv(Utility\Scripts\Build-LexiconLayers.ps1)。
+# 詞源:mumuy/relationship(MIT)之稱謂集合;
+# 【分層歸屬為本專案裁決,mumuy 資料本身不帶任何地域/語域欄位】。
+meta:
+  id: dialect-xiang
+  name: 湘語
+  layer: dialect
+  region: 湖南(「毑」「娭毑」系)
+  provenance: 詞形採自 mumuy(MIT)稱謂集合;分層由本專案裁決(LEXICON_PILOT_DECISIONS.tsv)
+  default_enabled: true
+variants:
+  伯父: [大爹]
+  兒子: [伢子]
+  舅父: [舅爹]
+  妹妹: [妹子]
+  母親: [阿毑]
+  孫子: [孙伢子]
+  外祖父: [毑父, 毑公, 毑爹, 毑爷]
+  外祖母: [毑母, 毑婆, 毑娘, 毑毑]
+  祖父: [嗲嗲]
+  祖母: [娭毑]
+
+  # ↓ 由 Utility\Scripts\Build-LexiconLayers.ps1 自 LEXICON_PILOT_DECISIONS.tsv 生成
+  伯祖父: [大嗲]
+  曾祖父: [佬嗲]
+  曾祖母: [老娭毑]
+  姑父: [姑爹]
+  姑祖母: [姑娭毑]
+  舅母: [舅娘, 舅毑]
+  婶母: [叔娘]
+  叔祖父: [细嗲]
+  外曾外祖父: [曾毑父]
+  外曾外祖母: [曾毑母]
+  姨父: [姨爹]
+
+  # ↓ 由 Utility\Scripts\Build-LexiconLayers.ps1 自 LEXICON_PILOT_DECISIONS.tsv 生成
+  伯祖母: [伯娭毑]
+  叔祖母: [叔娭毑]
+  姨祖母: [姨娭毑]
+
+variants_male:
+  配偶: [堂客]

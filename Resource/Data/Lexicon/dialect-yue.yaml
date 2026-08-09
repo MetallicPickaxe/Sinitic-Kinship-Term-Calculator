@@ -1,0 +1,52 @@
+# 粵語 · 廣府/港澳
+#
+# 鍵 = 標準形(引擎算出的主位詞);值 = 該層的地方/語域形。本層可停用、可替換;
+# 停用後主位仍為標準漢語,不影響引擎正確性。
+#
+# 生成自 Resource\Data\Reference\LEXICON_PILOT_DECISIONS.tsv(Utility\Scripts\Build-LexiconLayers.ps1)。
+# 詞源:mumuy/relationship(MIT)之稱謂集合;
+# 【分層歸屬為本專案裁決,mumuy 資料本身不帶任何地域/語域欄位】。
+meta:
+  id: dialect-yue
+  name: 粵語
+  layer: dialect
+  region: 廣府/港澳
+  provenance: 詞形採自 mumuy(MIT)稱謂集合;分層由本專案裁決(LEXICON_PILOT_DECISIONS.tsv)
+  default_enabled: true
+variants:
+  伯父: [阿伯, 伯爷]
+  弟弟: [阿弟, 细佬]
+  兒媳: [心抱]
+  兒子: [囝囝, 仔, 阿仔, 仔仔]
+  父親: [阿爸, 老窦, 爹地]
+  哥哥: [阿哥, 大佬]
+  姑母: [姑嬷, 姑姐, 姑妹]
+  姐姐: [阿姐, 家姐]
+  舅父: [阿舅]
+  妹妹: [阿妹]
+  母親: [阿妈, 妈咪, 老乸]
+  女兒: [阿女]
+  叔父: [阿叔]
+  孫子: [孙仔]
+  外甥: [甥仔]
+  外祖母: [阿婆, 外嬷, 嫲嫲]
+  姨母: [姨嬷]
+  岳父: [家公, 外父]
+  岳母: [家婆, 家娘, 外母]
+  姪子: [侄仔, 阿侄]
+  祖父: [祖公, 亚爷, 亚公]
+  祖母: [祖婆, 阿婆, 亚嬷, 亚婆, 祖嫲, 嫲嫲]
+
+  # ↓ 由 Utility\Scripts\Build-LexiconLayers.ps1 自 LEXICON_PILOT_DECISIONS.tsv 生成
+  伯母: [伯娘]
+  伯祖父: [大公]
+  曾祖父: [公太]
+  曾祖母: [婆太]
+  高祖父: [祖太公]
+  高祖母: [祖太婆]
+  舅母: [舅姆, 妗母, 阿妗]
+  嫂嫂: [阿嫂, 家嫂]
+  婶母: [阿婶, 家婶]
+
+  # ↓ 由 Utility\Scripts\Build-LexiconLayers.ps1 自 LEXICON_PILOT_DECISIONS.tsv 生成
+  堂妹: [堂细妹]

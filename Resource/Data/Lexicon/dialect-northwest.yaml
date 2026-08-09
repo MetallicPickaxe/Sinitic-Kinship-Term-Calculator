@@ -1,0 +1,29 @@
+# 西北 · 陝甘寧青(「尕」系)
+#
+# 鍵 = 標準形(引擎算出的主位詞);值 = 該層的地方/語域形。本層可停用、可替換;
+# 停用後主位仍為標準漢語,不影響引擎正確性。
+#
+# 生成自 Resource\Data\Reference\LEXICON_PILOT_DECISIONS.tsv(Utility\Scripts\Build-LexiconLayers.ps1)。
+# 詞源:mumuy/relationship(MIT)之稱謂集合;
+# 【分層歸屬為本專案裁決,mumuy 資料本身不帶任何地域/語域欄位】。
+meta:
+  id: dialect-northwest
+  name: 西北
+  layer: dialect
+  region: 陝甘寧青(「尕」系)
+  provenance: 詞形採自 mumuy(MIT)稱謂集合;分層由本專案裁決(LEXICON_PILOT_DECISIONS.tsv)
+  default_enabled: true
+variants:
+  伯父: [大大]
+  兒子: [娃子]
+  姑母: [尕娘]
+  舅父: [尕阿舅]
+  孫子: [孙娃子]
+  外祖父: [外爷, 尕公]
+  外祖母: [尕婆]
+
+  # ↓ 由 Utility\Scripts\Build-LexiconLayers.ps1 自 LEXICON_PILOT_DECISIONS.tsv 生成
+  弟媳: [弟媳妇子]
+
+variants_male:
+  配偶: [媳妇子, 婆姨]

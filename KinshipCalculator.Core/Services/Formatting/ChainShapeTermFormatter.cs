@@ -383,6 +383,15 @@ public static class ChainShapeTermFormatter
 		Int32 depth = genders.Count;
 		Boolean subjectIsMale = genders [ ^1 ] == PersonGender.Male;
 
+		// E4: 自己→養子 is 養子, not 兒子. Upward the three forms already came back as three words
+		// (養父/繼父/養母); downward every form collapsed onto the birth relation, so choosing 養子
+		// from the key menu looked like the menu had not fired — the path line said 自己→養子 while
+		// the answer said 兒子. The builder admits an adoptive descent only at this exact shape.
+		if ( shape.AdoptiveDescent )
+		{
+			return BuildAdoptedChildName ( subjectIsMale );
+		}
+
 		// Two-slot convention: leading slot = first hop female; inner slot = penultimate hop female.
 		Boolean leadingWai = depth >= 2 && genders [ 0 ] == PersonGender.Female;
 		Boolean innerWai = depth >= 3 && genders [ ^2 ] == PersonGender.Female;
@@ -919,11 +928,53 @@ public static class ChainShapeTermFormatter
 	// female ego uses 隨夫稱 (formats the chain as the husband would). Unknown ego renders
 	// the gender-conditional combined form the workbook established (男：X；女：Y).
 
+	/// <summary>
+	/// E4, the adoptive half: 自己→養子 / 自己→養女. Composed here rather than looked up, exactly as
+	/// 養父/養母 are, so no lexicon row is added — §四.1 keeps `Resource/Data/Lexicon` at zero change.
+	/// </summary>
+	private static ChainShapeName BuildAdoptedChildName ( Boolean subjectIsMale )
+	{
+		LocalizedText formal = subjectIsMale
+			? new ( "养子" , "養子" , "Adopted son" )
+			: new ( "养女" , "養女" , "Adopted daughter" );
+
+		String zhOfficial = subjectIsMale ? "自己→養子" : "自己→養女";
+		LocalizedText official = new (
+			zhOfficial , zhOfficial , subjectIsMale ? "Self → adopted son" : "Self → adopted daughter" );
+
+		return new ChainShapeName ( formal , null , official );
+	}
+
+	/// <summary>
+	/// E4, the step half: 自己→配偶→子 is the spouse's child — 繼子 — not 兒子. Mirrors
+	/// <see cref="FormatStepAncestor"/>, which has always named 母→配偶 繼父 on the way up.
+	/// </summary>
+	private static ChainShapeName BuildStepChildName ( Boolean subjectIsMale )
+	{
+		LocalizedText formal = subjectIsMale
+			? new ( "继子" , "繼子" , "Stepson" )
+			: new ( "继女" , "繼女" , "Stepdaughter" );
+
+		String zhOfficial = subjectIsMale ? "自己→配偶→子" : "自己→配偶→女";
+		LocalizedText official = new (
+			zhOfficial , zhOfficial , subjectIsMale ? "Self → spouse → son" : "Self → spouse → daughter" );
+
+		return new ChainShapeName ( formal , null , official );
+	}
+
 	private static ChainShapeName? FormatSpouseRooted ( KinshipChainShape shape )
 	{
 		if ( shape.AscentDepth == 0 && !shape.HasBranch )
 		{
-			return null; // spouse-only / spouse+descent chains: legacy
+			// E4: the spouse's own child is a 繼子/繼女. Depth 1 with no closing marriage hop only —
+			// 配偶→子→子 and 配偶→子→配偶 keep the legacy naming they have always had, so this opens
+			// the two words the contract names and nothing beside them.
+			if ( shape.DescentDepth == 1 && !shape.TrailingSpouse && !shape.AdoptiveDescent )
+			{
+				return BuildStepChildName ( shape.DescentGenders [ 0 ] == PersonGender.Male );
+			}
+
+			return null; // spouse-only / deeper spouse+descent chains: legacy
 		}
 
 		if ( shape.AscentDepth == 1 && !shape.HasBranch && shape.DescentDepth == 0 && !shape.TrailingSpouse )

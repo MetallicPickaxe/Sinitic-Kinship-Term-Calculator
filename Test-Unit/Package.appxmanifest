@@ -9,14 +9,14 @@
 
   <Identity
     Name="0d46101d-56ae-499c-818b-7378cbaaf3c9"
-    Publisher="CN=francis"
+    Publisher="CN=MetallicPickaxe"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="0d46101d-56ae-499c-818b-7378cbaaf3c9" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>Test-Unit</DisplayName>
-    <PublisherDisplayName>francis</PublisherDisplayName>
+    <PublisherDisplayName>Metallic Pickaxe</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 

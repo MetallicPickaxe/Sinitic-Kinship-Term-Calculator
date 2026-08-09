@@ -22,12 +22,76 @@ param(
     # answer rot while the reference survived only as a tagged candidate (the audit turned
     # all 438 primaries wrong and the loop stayed green); candidate-hit inflation is the
     # same rot in disguise, so it ratchets too.
-    [int]$Max438Primary = 23, [int]$Max438CandidateHit = 23, [int]$Max438Mismatch = 0,
-    [int]$Max90kPrimary = 3601, [int]$Max90kCandidateHit = 34, [int]$Max90kMismatch = 3567,
+    # 438 re-baselined 23/23/0 -> 29/29/0 on 2026-08-02, measured against the previous commit in
+    # a worktree so the movement is attributed, not assumed. EXACTLY eight rows changed, all of
+    # them the SP.{F,M}.{OB,YB,OS,YS}.SP family that the spouse-collateral analyzer now names:
+    # two reached 一致 (伯岳母/叔岳母) and six reached 可接受簡寫 while serving mumuy's southern
+    # word as a candidate (姑岳父/舅岳母/姨岳父 with 姑公/舅婆/姨公). They came OUT of 已收編
+    # (descriptive-chain accepted), so candidate-hit rose because coverage grew, not because a
+    # primary rotted — the distinction this three-counter split exists to make.
+    # 29 -> 31 on the same day, second lexicon batch. Three rows moved, again attributed row by
+    # row against the previous commit: SP.OB.S and SP.YB.S now serve mumuy's 舅侄 as a candidate,
+    # and SP.YB.SP rose from 已收編 to 可接受簡寫. No primary answer changed.
+    # 31 -> 33, long-tail batch. Eight rows moved: six only changed WHICH candidate the judgment
+    # names (伯外公 -> 大姥爷 and friends, same class, no counter effect), and SP.OB.D / SP.YB.D
+    # gained a candidate hit on 舅侄女. Again no primary answer changed.
+    [int]$Max438Primary = 33, [int]$Max438CandidateHit = 33, [int]$Max438Mismatch = 0,
+    # 90k TIGHTENS for the first time: 3601/34/3567 -> 3585/34/3551. The sibling-spouse-sibling
+    # analyzer stopped discarding the bridge sibling's gender, and both affected formatters now
+    # follow the project's own 姻/眷 connector rule. 24 rows moved, 16 of them straight to 一致.
+    # Tightens again the same day: -> 3537/2/3535, after two composite formatters stopped
+    # dropping the depth their analyzers had already counted (兄弟眷父 named a parent AND a
+    # grandparent; 姑甥 covered four descending generations). 48 fewer primary mismatches, and
+    # candidate-hit all but vanishes because those rows now agree outright.
+    [int]$Max90kPrimary = 3537, [int]$Max90kCandidateHit = 2, [int]$Max90kMismatch = 3535,
     # Exact suite fingerprints (passed/failed/skipped). Any deviation is red: a skipped or
     # vanished test must be re-baselined CONSCIOUSLY, never absorbed by a floor.
-    [int]$UnitPassed = 156, [int]$UnitFailed = 0, [int]$UnitSkipped = 1,
-    [int]$VerificationPassed = 63, [int]$VerificationFailed = 0, [int]$VerificationSkipped = 0,
+    # 156 -> 173: LexiconWiringRepairTests (15), the view-model variant-chip guard, and the M4
+    # generation-consistency gauge. 173 -> 207: the user-feature acceptance suites named in
+    # the 2026-08-02 user-feature acceptance contract -- F1 other names (12), F2 query history
+    # (11), F3 侄/姪 glyph policy (11, the last one added after driving the live window showed
+    # the glyph chip sitting below the fold). Two of F1's answer the audit's unlabelled-alternate
+    # finding: its named example, and a sweep because that defect lived in a fall-through a spot
+    # check walks straight past. Four more replace a single VACUOUS pruning test the response
+    # review caught: it asserted things that stayed true whether or not the policy ran, so the
+    # policy is now a pure function asserted directly and mutation-checked in both directions.
+    # F2's eleventh is the real Undo case its Clear test only claimed to cover.
+    # 63 -> 64: the lexicon reachability sweep.
+    # 207 -> 211, from the English other-names round. Two attempts were made and both REVERTED:
+    # copying the Chinese names into the English column (an English interface that prints
+    # 爸爸 · 老爸 · 爹 is not an English interface) and then having the notice point at Chinese
+    # (scoped reasoning that does not stop at Chinese). The tests pin what survived: no Han in an
+    # English session, the notice speaking only for the language on screen, the two Chinese
+    # scripts holding the same set of names, and the Simplified layer labels -- which had been
+    # rendering in Traditional all along, found while looking at this.
+    # 211 -> 213, from the layout rework: the line under the term must be the relation's English
+    # NAME rather than engine coordinates (swept over every two-token path), and the 的-chain
+    # must appear exactly where it separates two same-word readings and nowhere else.
+    # 213 -> 222: round-3 (ACCEPTANCE_2026-08-04_UI_ROUND3.md). Nine tests for V2's per-press
+    # origin and V3's grouped other-names -- which keys offer variants and which honestly cannot,
+    # that the menu shows real words rather than mode names, that each choice lands the sequence
+    # its word promises, that NOTHING survives a key press (the whole reason the radio mode was
+    # withdrawn), and that grouping moves the attribution without dropping a name. One of the nine
+    # records an engine asymmetry rather than a requirement: upward the three forms come back as
+    # three words, downward all six collapse to 兒子 / 女兒. Recorded, not endorsed -- the round
+    # freezes the engine.
+    # 222 -> 232: the engine round (ACCEPTANCE_2026-08-04_ENGINE_FIXPOINT.md), +10 new. The
+    # round-3 asymmetry test above was REWRITTEN in place rather than added to, since E4 closed
+    # the very thing it recorded -- all eight variant forms are named now, so it is no longer a
+    # record of a defect and no longer carries the "recorded, not endorsed" caveat.
+    #   +1  M5_IdentityDetoursDoNotChangeTheAnswer (E3) -- the audit's 6,038-detour sweep made
+    #       permanent and grown to 6,114; walking out to a relative and straight back may not
+    #       change the answer. This one gate replaces a defect family no other gate could see:
+    #       neither mumuy face contains a single doubling-back chain.
+    #   +5  EngineFixpointAcceptanceTests (E1) -- the reported chain answers like the short
+    #       question, identity detours answer like the direct relation, reduction repeats until
+    #       nothing more cancels, a round trip through the WRONG sex does not cancel, and
+    #       exhausting the iteration cap degrades instead of throwing.
+    #   +4  SamePersonGroupingTests (E2) -- the two double images the sweep named are gone, no
+    #       path shows one person twice, genuinely different people (the two 姑母, 伯父/叔父) stay
+    #       apart, and the backstop merges only what the reader cannot tell apart.
+    [int]$UnitPassed = 232, [int]$UnitFailed = 0, [int]$UnitSkipped = 1,
+    [int]$VerificationPassed = 64, [int]$VerificationFailed = 0, [int]$VerificationSkipped = 0,
     # Baselines live in this committed script. Overriding any of them from the CLI is a
     # RE-BASELINING act and must be declared — a release run must never absorb a quiet
     # override (the audit re-baselined around an ignored invariant via plain CLI args).
@@ -51,7 +115,7 @@ if ($overridden.Count -gt 0) {
 }
 
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$vswhere = 'C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe'
+$vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
 $msbuild = & $vswhere -latest -prerelease -requires Microsoft.Component.MSBuild -find 'MSBuild\**\Bin\MSBuild.exe' | Select-Object -First 1
 $vstest = & $vswhere -latest -prerelease -find '**\vstest.console.exe' | Select-Object -First 1
 if (-not $msbuild) { throw 'MSBuild.exe not found via vswhere (-prerelease).' }
@@ -64,7 +128,17 @@ Write-Output "Toolchain: MSBuild $((Get-Item $msbuild).VersionInfo.ProductVersio
 # So the seal is only meaningful over a clean tree. The single allowed exception is the
 # judged 438 workbook, which the loop itself refreshes as a DERIVED output (it is not a
 # build input); everything else — modified or untracked — fails the run.
-$dirtyAllowed = @('Resource/Data/Reference/MumuyMainAccuracyCompact.xlsx')
+$dirtyAllowed = @(
+    'Resource/Data/Reference/MumuyMainAccuracyCompact.xlsx',
+    # The compact face is also a DERIVED output. It used to be refreshed by hand, and it drifted:
+    # its our_* columns still showed the pre-K16 slot order (爺爺 | 祖父 instead of 祖父 | 爺爺)
+    # months after the swap. The judgments were never affected — the workbook pass reads only the
+    # REFERENCE columns from this file and recomputes our side live — but a tracked artifact that
+    # silently describes an old engine is exactly what this loop exists to prevent, so the loop
+    # now regenerates it below.
+    'Resource/Data/Reference/MumuyMainAccuracyCompact.tsv',
+    'Resource/Data/Reference/MumuyMainAccuracyCompact.Unsupported.tsv'
+)
 $dirty = @(git -C $root status --porcelain | Where-Object {
     $path = ($_ -replace '^..\s+', '') -replace '^"(.*)"$', '$1'
     $dirtyAllowed -notcontains $path
@@ -92,7 +166,52 @@ foreach ($pin in $oraclePins) {
 }
 Write-Output 'Oracle inputs hash-verified (3 files)'
 
+# Lexicon structure gate. The layer files are data, so no compiler checks them: a duplicate key,
+# a word hung off two different standard forms, or a variant that shadows another relation's
+# standard form all load silently and corrupt the reverse lookup. (Reachability — whether a key
+# is a form the engine can actually emit — is enforced from inside the verification suite, which
+# can drive the calculator.)
+& "$root\Utility\Scripts\Test-LexiconInvariants.ps1"
+if ($LASTEXITCODE -ne 0) { Write-Output 'GATE FAILED: lexicon invariants'; exit 1 }
+
+# Shipping documents point the reader at concrete repository paths. Documentation does not
+# compile, so a renamed file turns those instructions into a dead end for someone holding only
+# the package — with nothing in the build to notice.
+#
+# The self-test runs FIRST and is not ceremony. The audit of 2026-08-02 caught this gate passing
+# here while failing in a fresh clone, because it demanded that build outputs (UI\obj,
+# Distribution\) already exist — which they did, on the machine that wrote it. The repair was a
+# classifier separating repository paths from generated and operator-supplied ones, so the
+# classifier is the part that must not silently rot.
+& "$root\Utility\Scripts\Test-DocReferences.ps1" -SelfTest
+if ($LASTEXITCODE -ne 0) { Write-Output 'GATE FAILED: doc-reference classifier self-test'; exit 1 }
+
+& "$root\Utility\Scripts\Test-DocReferences.ps1"
+if ($LASTEXITCODE -ne 0) { Write-Output 'GATE FAILED: shipping-document references'; exit 1 }
+
 $net = 'net10.0-windows10.0.26100.0'
+# NOT in this list: Test\Test-UI.csproj. Its cases are [UITestMethod] and call window.Activate(),
+# so running them opens a real window and takes focus — unacceptable inside an unattended gate.
+# That is a deliberate exclusion, stated here rather than left invisible.
+#
+# But "run them by hand" needs to say HOW, because from a command line you cannot. Measured
+# 2026-08-03, before publishing the release package:
+#
+#   vstest.console Test-UI.dll  -> all three FAIL: "UITestMethodAttribute.DispatcherQueue should
+#                                  not be null". The wiring exists (Test\UnitTestApp.xaml.cs:54
+#                                  sets it), but only once the WinUI app is running, and loading
+#                                  the DLL in-process never starts it.
+#   vstest.console Test-UI.exe  -> "No test is available."
+#
+# The project is OutputType=WinExe and its OnLaunched calls UnitTestClient.Run(CommandLine), so
+# the app must be launched BY the test platform as an app-container host — which in practice
+# means Visual Studio's Test Explorer. Anyone reading "must be run by hand" and reaching for the
+# CLI will get three red tests and think the product broke; it did not.
+#
+# Everything about the view model that can be asserted without a window lives in Test-Unit
+# instead (the variant-chip guard, for one), which is where UI-surface regressions should be
+# pinned. Real-window verification is done by publishing and driving the app with `winapp ui`,
+# which is what the 2026-08-02 walkthroughs and the pre-release check both used.
 $projects = @(
     @{ Proj = "$root\Test-Unit\Test-Unit.csproj";                                     Bin = "$root\Test-Unit\bin\x64\Debug\$net\win-x64\Test-Unit.dll" },
     @{ Proj = "$root\Test-Verification\Test-Verification.csproj";                     Bin = "$root\Test-Verification\bin\x64\Debug\$net\Test-Verification.dll" },
@@ -169,6 +288,11 @@ if ($m3Exit -ne 0 -or $m3Passed -ne 1 -or $m3Failed -ne 0 -or $m3Skipped -ne 0 -
 }
 
 Write-Output 'MAIN:'
+# Refresh the compact face FIRST so the tracked artifact describes the engine that is about to be
+# judged. The workbook pass reads this file's reference columns and recomputes ours, so the
+# refresh cannot bias the gate — it only stops the file itself from going stale.
+& $exporter --source main --judge | Select-Object -Last 1
+if ($LASTEXITCODE -ne 0) { Write-Output 'GATE FAILED: 438 compact export'; exit 1 }
 & "$root\Utility\Scripts\build_judged_main_workbook.ps1" -ExporterPath $exporter `
     -MaxMismatch $Max438Mismatch -MaxPrimary $Max438Primary -MaxCandidateHit $Max438CandidateHit
 if ($LASTEXITCODE -ne 0) { Write-Output 'GATE FAILED: 438 workbook pass'; exit 1 }

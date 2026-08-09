@@ -349,6 +349,26 @@ public class ViewModelTests
 		Assert.AreNotEqual ( previousPath , vm.PathText , "Path should revert after undo." );
 	}
 
+	// The symptom the operator reported: the "other names" column was EMPTY for the relations
+	// people click first. The engine-side cause is pinned in LexiconWiringRepairTests; this
+	// pins the surface the user actually sees — the variant chips the view model builds, each
+	// tagged with the layer that owns it.
+	[TestMethod]
+	public void CommonRelation_ShowsTaggedVariantChips ()
+	{
+		MainViewModel vm = CreateViewModel ();
+		vm.SelectedLanguage = "zh-Hant";
+		vm.AppendTokenCommand.Execute ( vm.TokenButtons.First ( t => t.Token.Id == "father" ) );
+
+		ResultInterpretation father = vm.ResultOptions.First ();
+		Assert.AreEqual ( "父親" , father.StandardLabel );
+		Assert.IsTrue ( father.Variants.Count > 1 , $"父親 should offer several variants, got {father.Variants.Count}" );
+
+		VariantChip everyday = father.Variants.First ( v => v.Term == "爸爸" );
+		Assert.AreEqual ( "爸爸 · everyday speech" , everyday.Display );
+		CollectionAssert.AllItemsAreUnique ( father.Variants.Select ( v => v.Term ).ToArray () );
+	}
+
 	// K16 contract (2026-07-20): the primary term is STANDARD Chinese; the colloquial /
 	// dialect form is demoted to the alternate slot, supplied by a lexicon layer. Both are
 	// asserted here so the layer wiring cannot silently drop the everyday word.
@@ -792,29 +812,35 @@ public class ViewModelTests
 	// K11a grammar-induction probe: dumps the oracle's composite vocabulary for chains
 	// [blood]+SP+[post] to the scratchpad TSV. Run manually when extending the 眷-grammar;
 	// last sweep promoted to Utility/MumuyAlgorithm/Data/juan-grammar-probe.tsv.
-	// K15/K16 lexicon-layer guard: the four built-in layers must load from the embedded
-	// resources (the single-file publish cannot see loose data files), the base layer must
-	// answer non-derivable lexemes by ego gender, and variant layers must attach to the
-	// standard form with their provenance label intact.
+	// K15/K16 lexicon-layer guard: the built-in layers must load from the embedded resources
+	// (the single-file publish cannot see loose data files), the base layer must answer
+	// non-derivable lexemes by ego gender, and variant layers must attach to the standard form
+	// with their provenance label intact. The regional layers are open-ended — the pilot added
+	// seven — so the pin is on the STACK HEAD, whose order decides which layer owns a word.
 	[TestMethod]
 	public void LexiconLayers_LoadAndResolve ()
 	{
 		var layers = KinshipCalculator.Core.Data.KinshipLexiconLayers.Layers;
-		CollectionAssert.AreEquivalent (
+		CollectionAssert.AreEqual (
 			new [] { "lexicon-standard" , "register-colloquial" , "dialect-north" , "dialect-south" } ,
-			layers.Select ( l => l.Id ).ToArray () ,
+			layers.Select ( l => l.Id ).Take ( 4 ).ToArray () ,
 			$"loaded: {String.Join ( ',' , layers.Select ( l => l.Id ) )}" );
+		CollectionAssert.AllItemsAreUnique ( layers.Select ( l => l.Id ).ToArray () );
 
 		Assert.AreEqual ( "岳父" , KinshipCalculator.Core.Data.KinshipLexiconLayers.TryGetStandardLexeme ( "SP.F" , PersonGender.Male ) );
 		Assert.AreEqual ( "公公" , KinshipCalculator.Core.Data.KinshipLexiconLayers.TryGetStandardLexeme ( "SP.F" , PersonGender.Female ) );
 		Assert.AreEqual ( "亲家公" , KinshipCalculator.Core.Data.KinshipLexiconLayers.TryGetStandardLexeme ( "D.SP.F" , PersonGender.Unknown ) );
 		Assert.IsNull ( KinshipCalculator.Core.Data.KinshipLexiconLayers.TryGetStandardLexeme ( "SP.F" , PersonGender.Unknown ) );
 
+		// The variant SET grows with every lexicon batch, so what is pinned here is the wiring:
+		// the words are present and each carries the layer that owns it. Pinning the whole set
+		// would just churn.
 		var grandUncle = KinshipCalculator.Core.Data.KinshipLexiconLayers.GetVariants ( "伯祖父" );
-		CollectionAssert.AreEquivalent (
-			new [] { "伯公" , "大伯公" , "大爷爷" } ,
-			grandUncle.Select ( v => v.Term ).ToArray () ,
-			$"伯祖父 variants: {String.Join ( ',' , grandUncle.Select ( v => v.Term ) )}" );
+		String[] grandUncleTerms = grandUncle.Select ( v => v.Term ).ToArray ();
+		foreach ( String expected in new [] { "伯公" , "大伯公" , "大爷爷" } )
+		{
+			CollectionAssert.Contains ( grandUncleTerms , expected , $"伯祖父 variants: {String.Join ( ',' , grandUncleTerms )}" );
+		}
 		Assert.AreEqual ( "dialect-south" , grandUncle.First ( v => v.Term == "伯公" ).LayerId );
 		Assert.AreEqual ( "dialect-north" , grandUncle.First ( v => v.Term == "大爷爷" ).LayerId );
 		Assert.AreEqual ( "register-colloquial" , KinshipCalculator.Core.Data.KinshipLexiconLayers.GetVariants ( "祖父" ).Single ( v => v.Term == "爷爷" ).LayerId );
@@ -868,8 +894,8 @@ public class ViewModelTests
 		Assert.IsTrue ( first.HasVariants , "Candidate variants must be present" );
 
 		var chips = first.Variants.Select ( v => v.Display ).ToArray ();
-		CollectionAssert.Contains ( chips , "伯公 · 南系" , $"chips: {String.Join ( " / " , chips )}" );
-		CollectionAssert.Contains ( chips , "大爷爷 · 北系" , $"chips: {String.Join ( " / " , chips )}" );
+		CollectionAssert.Contains ( chips , "伯公 · Southern" , $"chips: {String.Join ( " / " , chips )}" );
+		CollectionAssert.Contains ( chips , "大爷爷 · Northern" , $"chips: {String.Join ( " / " , chips )}" );
 		Assert.IsFalse (
 			chips.Contains ( "伯祖父 · 南系" ) ,
 			"The standard form must not be listed as a dialect variant" );

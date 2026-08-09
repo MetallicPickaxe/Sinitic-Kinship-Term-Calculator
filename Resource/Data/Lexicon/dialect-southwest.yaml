@@ -1,0 +1,52 @@
+# 西南官話 · 川渝雲貴
+#
+# 鍵 = 標準形(引擎算出的主位詞);值 = 該層的地方/語域形。本層可停用、可替換;
+# 停用後主位仍為標準漢語,不影響引擎正確性。
+#
+# 生成自 Resource\Data\Reference\LEXICON_PILOT_DECISIONS.tsv(Utility\Scripts\Build-LexiconLayers.ps1)。
+# 詞源:mumuy/relationship(MIT)之稱謂集合;
+# 【分層歸屬為本專案裁決,mumuy 資料本身不帶任何地域/語域欄位】。
+meta:
+  id: dialect-southwest
+  name: 西南官話
+  layer: dialect
+  region: 川渝雲貴
+  provenance: 詞形採自 mumuy(MIT)稱謂集合;分層由本專案裁決(LEXICON_PILOT_DECISIONS.tsv)
+  default_enabled: true
+variants:
+  伯父: [伯爸, 大爹, 大爸, 大爸爸]
+  兒子: [娃子]
+  父親: [老汉, 老汉儿]
+  姑母: [嬢嬢, 娘娘, 幺姑姐]
+  舅父: [舅爸, 舅爹]
+  妹妹: [妹子, 妹儿]
+  女婿: [女婿子]
+  叔父: [叔爸, 小爹, 小爸, 小爸爸]
+  孫子: [孙娃子]
+  外祖父: [嘎公, 嘎爹, 嘎嘎爹, 嘎爷爷]
+  外祖母: [嘎嘎, 嘎婆, 嘎嘎婆, 嘎奶奶]
+  姨母: [嬢嬢]
+  岳父: [岳老子]
+  岳母: [婆母娘, 岳母娘, 丈母婆]
+  祖父: [嗲嗲]
+
+  # ↓ 由 Utility\Scripts\Build-LexiconLayers.ps1 自 LEXICON_PILOT_DECISIONS.tsv 生成
+  伯母: [伯妈, 伯娘, 大妈妈]
+  大舅子: [舅哥]
+  姑父: [姑爹]
+  姐夫: [姐夫哥]
+  襟弟: [连桥, 两桥]
+  襟兄: [连桥, 两桥]
+  舅母: [舅娘, 妗娘]
+  婶母: [叔妈, 叔娘, 小妈, 小妈妈, 婶娘]
+  叔祖父: [幺爷]
+  姨父: [姨爹]
+
+  # ↓ 由 Utility\Scripts\Build-LexiconLayers.ps1 自 LEXICON_PILOT_DECISIONS.tsv 生成
+  叔祖母: [幺奶]
+
+variants_male:
+  配偶: [婆娘, 堂客]
+
+variants_female:
+  配偶: [汉子]

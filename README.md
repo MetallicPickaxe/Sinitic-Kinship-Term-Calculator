@@ -1,10 +1,31 @@
 # Sinitic Kinship Term Calculator
 
+[![Licence: MIT](https://img.shields.io/badge/licence-MIT-green.svg)](LICENSE)
+
 Click `father · father · elder-brother` and it tells you the person is your **伯祖父** — and that
 southern speakers say **伯公**, northern speakers say **大爺爺**, and how to phrase it in a legal
 document.
 
 A WinUI 3 desktop application on .NET 10. Single-file, portable.
+
+## Showcase
+
+![Main result: 伯祖父 with every recorded name grouped by source](Resource/Screenshot/MainResult.png)
+
+*One tap per hop on a family-tree keypad. `father · father · elder-brother` resolves to **伯祖父**
+(Granduncle), and every recorded name for the same person sits under the register or region it
+comes from — Northern, Southern, Wu, Xiang, Yue (Cantonese), literary.*
+
+![Two possible relations, separated by their documentary chains](Resource/Screenshot/PossibleRelations.png)
+
+*`father · father · daughter` is genuinely ambiguous — grandfather's daughter may be father's elder
+or younger sister. The engine returns **both** 姑母 readings and separates them with the documentary
+chains 父的姐 and 父的妹 instead of silently picking one.*
+
+![Press-and-hold variants on the father key](Resource/Screenshot/OriginVariants.png)
+
+*Keys with a dot carry variants, phone-keyboard style: right-click or press-and-hold 父 and the
+same tap can land 養父 (adoptive) or 繼父 (step) instead.*
 
 ---
 
@@ -34,21 +55,29 @@ word-formation laws behind it, and rebuilt those laws as a generative engine —
 *computes* the term rather than remembering it. See [ATTRIBUTION.md](ATTRIBUTION.md) for exactly
 what came from where, and for an honest account of what we did **not** manage to cover.
 
+## Language policy
+
+Kinship terms — the content — render in Traditional Chinese characters throughout. Everything
+around them is English: the interface chrome, the source tags (Standard Mandarin, Northern,
+Yue (Cantonese) and the rest), this README, and every engineering document in the repository.
+There is no language switch. The English relation name under each term and the English path
+line are fixed companions of the content, not a translation mode.
+
 ## Four simultaneous readings
 
-One relationship, four ways to say it. **The selected answer is always standard Chinese**; the rest
+One relationship, four ways to say it. **The selected answer is always Standard Mandarin**; the rest
 are candidates.
 
 | Layer | Example for `father · father · elder-brother` | Purpose |
 |---|---|---|
 | **Standard** | 伯祖父 | The answer. Nationally current, usable in writing |
-| **Colloquial / regional** | 伯公 *(southern)* · 大爺爺 *(northern)* | Candidates, each tagged with its source layer |
-| **Documentary** | 父的父的兄 | Legal-document phrasing, never contracted. Available at any depth |
-| **Raw** | 我的父的父的兄 | Your input read back **unsimplified**, so you can confirm the machine understood you |
+| **Colloquial / regional** | 伯公 *(Southern)* · 大爺爺 *(Northern)* | Candidates, grouped under the source layer they come from |
+| **Documentary** | 父的父的兄 | Legal-document phrasing, never contracted. Shown when it is the one thing separating two same-named readings |
+| **Path readback** | 自己→父→父→兄 · Self → Father → Father → Elder Brother | Your input read back, so you can confirm the machine understood you |
 
-The fourth layer earns its place whenever simplification happens: enter
-`mother · elder-brother · mother` and the engine resolves **外祖母**, but the raw layer still shows
-**我的母的兄的母** — one glance confirms nothing was misread.
+The readback earns its place whenever simplification happens: enter
+`mother · elder-brother · mother` and the engine resolves **外祖母**, while the path line still
+reads **自己→母→兄→母** — one glance confirms nothing was misread.
 
 ## Regional variants are pluggable data, not hard-coded strings
 
@@ -59,11 +88,26 @@ lives in YAML:
 Resource/Data/Lexicon/
   lexicon-standard.yaml     standard terms no rule can derive (公公 / 岳父 / 親家公)
   register-colloquial.yaml  nationwide colloquial (爺爺 / 伯伯 / 阿姨)
+  register-literary.yaml    書面 and classical (世父 / 仲父 / 彌甥 / 再從父)
   dialect-north.yaml        northern (姥姥 / 大爺爺 / 丈母娘)
-  dialect-south.yaml        southern (伯公 / 姑婆 / 外婆)
+  dialect-northwest.yaml    north-western (尕娘 / 婆姨 / 外爺)
+  dialect-southwest.yaml    south-western (幺爺 / 婆娘 / 姑爹)
+  dialect-xiang.yaml        Xiang (娭毑 / 大嗲 / 毑公)
+  dialect-wu.yaml           Wu (大姆媽 / 娘舅 / 小娘)
+  dialect-min.yaml          Min (依姆 / 恩伯 / 阿妗)
+  dialect-yue.yaml          Cantonese (老竇 / 家嫂 / 太公)
+  dialect-hakka.yaml        Hakka
+  dialect-south.yaml        southern, undifferentiated (伯公 / 姑婆 / 外婆)
 ```
 
-These four ship **next to the executable** in a `Lexicon` folder. Edit them, or add your own:
+Twelve layers, 161 standard forms, 785 variant entries. Every one of them is machine-checked to
+actually surface: a word registered against a key the engine never emits would load, validate and
+reverse-look-up perfectly while no query could ever reach it, which is indistinguishable from a
+relation that simply has no everyday word. A verification sweep drives the calculator over a
+declared chain corpus and requires each shipped entry to appear in real output, in **both**
+scripts — a Hans-only entry leaves Hant readers with a blank column.
+
+They ship **next to the executable** in a `Lexicon` folder. Edit them, or add your own:
 
 ```yaml
 meta:
@@ -83,6 +127,10 @@ A layer is a small YAML file with a `meta` block and one or both of:
 
 - **`variants`** — the common case. Alternate spellings keyed by the *standard* form; the standard
   term stays the primary answer, your spellings become tagged candidates.
+- **`variants_male`** / **`variants_female`** — the same, but only offered to an ego of that
+  gender. Needed wherever one standard form covers two people: `配偶` is a single gender-neutral
+  word, so a flat list would hand 老公 and 老婆 to the same person. An ego of unknown gender gets
+  the neutral list only — offering both is worse than offering neither.
 - **`entries`** — a standard term the engine cannot derive (e.g. `公公`), keyed by relation chain
   and ego gender. Usually only the base layer needs this.
 
@@ -143,11 +191,20 @@ finite set and stops; we compute past its edge, mark the boundary plainly (a des
 
 | Surface | Status | What it actually proves |
 |---|---|---|
-| Unit tests | 156 passed / 0 failed / 1 skipped | behaviour pinned against regressions |
-| Verification tests | 63 passed / 0 failed / 0 skipped | rule-layer invariants + judgment-contract pins hold |
-| Hand-adjudicated set (438 rows) | 23 primary-differs (all candidate-served) / **0 served misses** | a human-curated safety net, judged by the freshly built engine (the loop hard-fails on a stale binary). 23 rows deliberately keep the standard form primary while the reference's regional form is served as a tagged candidate (marked 候選命中) — disclosed, gated by ratchet, never counted as full matches |
-| Deep comparison vs mumuy (90,042 rows) | ~96% reconciled | agreement *where mumuy has an answer*; ~4% deliberate or open divergence |
-| Terminal-gender consistency (random chains) | **0 / 7,500** | an oracle-free metamorphic invariant that started life as a 1.13% defect gauge; the structure-collapsing shortcuts behind it were retired across two audit rounds and the run (fixed seed, deterministic) now asserts exactly zero |
+| Unit tests | 232 passed / 0 failed / 1 skipped | behaviour pinned against regressions |
+| Verification tests | 64 passed / 0 failed / 0 skipped | rule-layer invariants, judgment-contract pins, and a sweep asserting every shipped lexicon entry actually reaches a user in both scripts |
+| Hand-adjudicated set (438 rows) | 33 primary-differs (all candidate-served) / **0 served misses** | a human-curated safety net, judged by the freshly built engine (the loop hard-fails on a stale binary). Those 33 rows deliberately keep the standard form primary while the reference's regional form is served as a tagged candidate (marked 候選命中) — disclosed, gated by ratchet, never counted as full matches |
+| Deep comparison vs mumuy (90,042 rows) | ~96% reconciled | agreement *where mumuy has an answer*. On the ~4% that differs, only 256 rows are ones this engine cannot even describe; 195 are four hops or shorter. The rest sit five hops and deeper, where **both** sides are generating rather than looking anything up, and the disagreement is over composition, not vocabulary (ours 甥孫眷外孫女 against mumuy's 甥外孙姻孙女 — neither is a word anyone says) |
+| Identity-detour invariance (every 1–3 token chain, detours at every boundary) | **0 / 6,114** | an oracle-free metamorphic gate: a detour that provably returns to the same person (`son · father` from a man) must not change the answer. The family of doubling-back-chain defects it was built against — 1,422 instances at its first calibration — is zero and ratcheted so it stays zero |
+| Terminal-gender consistency (random chains) | **0 / 8,730** | an oracle-free metamorphic invariant that started life as a 1.13% defect gauge; the structure-collapsing shortcuts behind it were retired across two audit rounds and the run (fixed seed, deterministic) now asserts exactly zero |
+| Generation consistency (random chains) | **12 / 2,092 terms = 0.57%** | the same idea on the other axis: one term must not name people standing at two different generations from you. Opened at 1.07%; every collision left is a documented composite-frame ambiguity of one shape. Published rather than hidden, ratcheted, and every colliding pair is dumped for the next round |
+
+The entry-by-entry evidence behind the 438-row line ships with the repository, judgment by
+judgment: [MumuyMainAccuracyCompact.xlsx](Resource/Data/Reference/MumuyMainAccuracyCompact.xlsx)
+is the adjudicated workbook (one row per relation: both engines' answers, the served candidates,
+and the ruling), with [MumuyMainAccuracyCompact.tsv](Resource/Data/Reference/MumuyMainAccuracyCompact.tsv)
+as its diff-friendly face. The 90,042-row deep comparison is not committed — it is regenerated
+from the pinned oracles on every validation run (see below).
 
 `Utility\Scripts\Run-ValidationLoop.ps1` enforces these as **hard gates** (any failure exits
 nonzero):
@@ -164,9 +221,11 @@ nonzero):
   its exact 90,042 row count and a closed judgment vocabulary (matched by exact segment); the
   438 face must contain exactly 438 judged rows under the same vocabulary.
 - **All three mismatch counters ratchet on both faces** — primary-answer mismatches,
-  candidate-served hits, and genuine served misses each have their own ceiling (438: 23 / 23
-  / 0, 90k: 3,601 / 34 / 3,567). Gating served misses alone would let every primary answer
-  rot into a "candidate-served" hit and still pass.
+  candidate-served hits, and genuine served misses each have their own ceiling (438: 33 / 33
+  / 0, 90k: 3,537 / 2 / 3,535). Gating served misses alone would let every primary answer
+  rot into a "candidate-served" hit and still pass. Every movement of a ceiling is attributed
+  row by row against the previous commit before it is accepted — a rise has to be shown to be
+  coverage growing rather than an answer rotting.
 
 None of these, alone or together, certifies the un-attested tail — the 438 set is what a human
 curated, the 90k set measures agreement only where mumuy speaks, and the metamorphic gauges measure
@@ -182,6 +241,11 @@ Script\Publish-SingleFile.ps1
 # Build and run the full verification suite with hard gates
 Utility\Scripts\Run-ValidationLoop.ps1
 ```
+
+Visual Studio works directly too: open `SiniticKinshipTermCalculator.slnx` and Build, or use the
+`UI` project's bundled publish profiles (win-x64 / win-arm64 / win-x86, self-contained) for a quick
+**Publish** from the IDE. The profiles are deliberately lighter than the script — no staging
+transaction, licence inventory, or `BUILDINFO` — so the script above remains the release path.
 
 Requirements: Visual Studio (with MSBuild), the .NET 10 SDK (`global.json` pins the SDK band),
 and **PowerShell 7+ (`pwsh`)** for the scripts — Windows PowerShell 5.1 cannot parse them.

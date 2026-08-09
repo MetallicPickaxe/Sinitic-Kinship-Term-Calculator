@@ -496,8 +496,19 @@ public class KinshipNameFormatter
         // Suffix for child gender (子/女)
         String childGenderSuffix = isMale ? (isTraditional ? "子" : "子") : (isTraditional ? "女" : "女");
 
+        // How far DOWN the spouse's sibling's line the chain went. The analyzer counts it
+        // (GenerationChange = -descendantCount); this method used to stop at the first
+        // generation, so 姊妹眷姪子 named both the nephew and his son. Depth 1 keeps its exact
+        // wording; below that the shared descendant ladders take over (姪孫 / 外甥孫 …).
+        Int32 depth = Math.Abs(info.GenerationChange);
+        String deepChildTerm = depth <= 1
+            ? baseChildTerm + childGenderSuffix
+            : spouseSiblingIsBrother
+                ? (isTraditional ? BuildCollateralDescHant(depth, isMale) : BuildCollateralDescHans(depth, isMale))
+                : (isTraditional ? BuildSororalDescHant(depth, isMale) : BuildSororalDescHans(depth, isMale));
+
         // Colloquial 1: In-law + base child term
-        String colloquialInLawChild = (isTraditional ? "姻" : "姻") + baseChildTerm + childGenderSuffix;
+        String colloquialInLawChild = (isTraditional ? "姻" : "姻") + deepChildTerm;
 
         // Colloquial 2: Descriptive term (Brother's wife's brother's child)
         String initialSiblingTitle;
@@ -529,7 +540,7 @@ public class KinshipNameFormatter
             String initialSiblingFormal = initialSiblingIsBrother
                 ? (isTraditional ? "兄弟" : "兄弟")
                 : (isTraditional ? "姊妹" : "姊妹");
-            return initialSiblingFormal + (isTraditional ? "眷" : "眷") + baseChildTerm + childGenderSuffix;
+            return initialSiblingFormal + (isTraditional ? "眷" : "眷") + deepChildTerm;
         }
 
         if (context == NamingContext.Colloquial)
@@ -545,76 +556,33 @@ public class KinshipNameFormatter
     {
         if (context == NamingContext.Official) return "配偶的旁系長輩";
 
-        // info.IsPaternal = Last Parent is Father (Bo/Shu/Gu)
-        // info.IsTopLevelPaternal = First Parent is Father
-        // info.IsSpouse = True (Spouse side)
-        // Since it's Spouse -> Parents -> Sibling, we are talking about Spouse's Uncle/Aunt.
-        
-        // If Spouse is Husband (Self is Female):
-        // Husband's Uncle/Aunt -> follows Husband's address but add "公/婆" or "翁/姑"?
-        // Colloquially: 跟着孩子叫 (Uncle-Grandpa).
-        // Husband's Paternal Uncle -> 伯公/叔公.
-        // Husband's Maternal Uncle -> 舅公.
-        
-        // If Spouse is Wife (Self is Male):
-        // Wife's Uncle -> 叔岳父/伯岳父/舅岳父.
-        
-        // However, we don't know Self Gender here directly, but we can infer from Spouse gender?
-        // No, info.Gender is the gender of the final relative (The Uncle/Aunt).
-        // We don't know if it's Husband's Uncle or Wife's Uncle without checking Self Gender from Context (which is not passed here).
-        // Wait, IsPaternal in TryAnalyzeSpouseCollateral was set based on Parents.
-        // But we don't know if it's Husband side or Wife side.
-        // TryAnalyzeSpouseCollateral logic:
-        // IsTopLevelPaternal determined by First Parent (Father/Mother).
-        // It doesn't track if Spouse is Husband or Wife.
-        
-        // Assumption: Most terms differ by whether it's "Yue" (Wife's side) or "Gong/Po" (Husband's side).
-        // We need Self Gender.
-        // But Formatter doesn't have Self Gender.
-        // This is a limitation of the Formatter signature.
-        // But wait, `FormatSpouseLineal` uses `isMale` (final gender) and `isPaternalSide`.
-        // Ah, `isPaternalSide` in `FormatSpouseLineal` comes from `TryAnalyzeAncestorSpouse`:
-        // `IsPaternal = segments.Parents[0].Id == "father"`.
-        // Wait, that determines if it's Father-in-law or Mother-in-law's side?
-        // No, `TryAnalyzeAncestorSpouse` handles `Self -> Parent -> Spouse`. (Grandmother-in-law).
-        // `TryAnalyzeAffinal` handles `Self -> Spouse -> Parent`. (Father-in-law).
-        // In `TryAnalyzeAffinal` (Pattern 1), `IsPaternal` is set to `(context.SelfGender == PersonGender.Female)`.
-        // So `IsPaternal` = True means Husband's side. False means Wife's side.
-        
-        // In `TryAnalyzeSpouseCollateral`, I set `IsPaternal` to `lastParent.Id == "father"`.
-        // I used `IsPaternal` for the Uncle type (Bo/Shu vs Jiu).
-        // I used `IsTopLevelPaternal` for the Lineage (Father vs Mother).
-        // I LOST the "Husband vs Wife" bit.
-        
-        // Fix: In `TryAnalyzeSpouseCollateral`, I should store "Husband vs Wife" in `IsTopLevelPaternal`?
-        // No, `IsTopLevelPaternal` is used for Lineage.
-        // We are out of bits.
-        
-        // Hack: Return a generic term or both options?
-        // Or better, use `IsSpouse` logic?
-        
-        // Let's look at `FormatGrandCollateral`. It handles "Uncle".
-        // Spouse's Uncle is "Uncle-in-law".
-        
-        // For now, I will output a combined string if ambiguous, or guess.
-        // Or better, let's assume `TryAnalyzeSpouseCollateral` puts `IsPaternal` as "Husband's side"?
-        // No, I specifically set it to `lastParent`.
-        
-        // Let's return specific terms based on the uncle type.
-        // "配偶的" + Title.
-        
+        // The chain is spouse -> parents -> sibling: the spouse's uncle or aunt.
+        //
+        // KNOWN LIMITATION — the emitted title is the WIFE-SIDE 岳 series for both egos.
+        // Chinese distinguishes the two sides here (妻之伯父 = 伯岳父, 夫之伯父 = 伯公 or, by
+        // 從夫稱, simply 伯父), but KinshipSemanticInfo spends its two lineage flags on other
+        // questions: IsPaternal picks the 伯/叔/姑 vs 舅/姨 letter from the LAST parent, and
+        // IsTopLevelPaternal picks the line from the FIRST one. Neither records which spouse
+        // the chain entered through, even though TryAnalyzeSpouseCollateral has the ego gender
+        // in hand. The southern 公/婆 spellings therefore reach a female ego only as dialect
+        // variants (dialect-south registers 伯公 against 伯岳父), never as her primary.
+        // Deciding what her primary SHOULD be — the affinal 伯公, or 伯父 by 從夫稱 — is a
+        // naming policy question, not a plumbing one, and moves a whole family of rows.
         String uncleTitle = "";
         Boolean isOlder = info.AgeOrder == SiblingOrder.Older;
         Boolean isMale = info.Gender == PersonGender.Male;
-        
+        // The letter comes from the blood pivot, the 父/母 ending from the person being named.
+        // They differ exactly when a marriage hop closes the chain (妻之伯父之妻 = 伯岳母).
+        Boolean pivotIsMale = info.CollateralSiblingIsMale;
+
         if (info.IsPaternal) // Last parent is Father
         {
-            if (isMale) uncleTitle = isOlder ? "伯" : "叔";
+            if (pivotIsMale) uncleTitle = isOlder ? "伯" : "叔";
             else uncleTitle = "姑";
         }
         else // Last parent is Mother
         {
-            if (isMale) uncleTitle = "舅";
+            if (pivotIsMale) uncleTitle = "舅";
             else uncleTitle = "姨";
         }
         
@@ -637,14 +605,29 @@ public class KinshipNameFormatter
         Boolean isMale = info.Gender == PersonGender.Male;
         Boolean isBrotherSide = info.IsPaternal;
 
+        // How far up the spouse's line the chain went. The analyzer counts it; this method used
+        // to ignore it, so 兄之妻之父 and 兄之妻之父之父 -- a parent and a GRANDparent -- both
+        // came out 兄弟眷父. Same ancestor ladder the lineal formatter uses (祖 / 曾祖 / 高祖 …).
+        Int32 ascent = Math.Max(1, Math.Abs(info.GenerationChange));
+        var stems = isTraditional ? AscendStemHant : AscendStemHans;
+        String ascentStem = ascent <= 1
+            ? String.Empty
+            : (stems.TryGetValue(ascent, out String? s) ? s : $"{ascent - 1}世祖");
+
         if (context == NamingContext.Formal)
         {
-            String siblingPrefix = isBrotherSide 
-                ? (isTraditional ? "兄弟" : "兄弟") 
-                : (isTraditional ? "姊妹" : "姊妹"); // Use 姊妹 as requested
-            
-            String suffix = isMale ? "姻父" : "姻母";
-            return siblingPrefix + suffix;
+            // Same 姻/眷 convention as AffinalWebComposer and FormatSiblingSpouseSibling: the
+            // connector records which side the chain crossed on, so a brother bridge takes 眷.
+            String siblingPrefix = isBrotherSide ? "兄弟" : "姊妹";
+            String connector = isBrotherSide ? "眷" : "姻";
+            return $"{siblingPrefix}{connector}{ascentStem}{(isMale ? "父" : "母")}";
+        }
+
+        // Past the parent generation there is no everyday paraphrase — 兄弟的岳父 does not
+        // stretch to a grandparent — so the formal compound stays primary and the slot is empty.
+        if (ascent > 1)
+        {
+            return String.Empty;
         }
 
         if (context == NamingContext.Colloquial)
@@ -695,18 +678,22 @@ public class KinshipNameFormatter
         if (context == NamingContext.Official) return "兄弟姐妹的配偶的兄弟姐妹";
         
         Boolean isMale = info.Gender == PersonGender.Male;
+        // Two slots, two different people. The first names the sibling the chain went THROUGH,
+        // the second the person being named; they coincide only by accident. This used to write
+        // the terminal gender into both, so 兄之妻之姐 read 姊妹姻姊妹.
+        Boolean bridgeIsBrother = info.IsPaternal;
+        // Connector by bridge gender, the project's own 姻/眷 convention (AffinalWebComposer:
+        // "String connector = bridgeIsMale ? 眷 : 姻"). This method wrote 姻 unconditionally,
+        // so the same relation carried one connector here and another there.
+        String connector = bridgeIsBrother ? "眷" : "姻";
 
         if (context == NamingContext.Formal)
         {
-            return isMale 
-                ? (isTraditional ? "兄弟姻兄弟" : "兄弟姻兄弟") 
-                : (isTraditional ? "姊妹姻姊妹" : "姊妹姻姊妹");
+            return $"{(bridgeIsBrother ? "兄弟" : "姊妹")}{connector}{(isMale ? "兄弟" : "姊妹")}";
         }
 
-        // Colloquial and others
-        return isMale 
-            ? (isTraditional ? "姻兄弟" : "姻兄弟") 
-            : (isTraditional ? "姻姊妹" : "姻姊妹");
+        // Colloquial and others: the person, not the path.
+        return $"{connector}{(isMale ? "兄弟" : "姊妹")}";
     }
 
     private String FormatSpouseSiblingSpouse(KinshipSemanticInfo info, NamingContext context, Boolean isTraditional)
@@ -770,9 +757,13 @@ public class KinshipNameFormatter
             }
             else
             {
-                if (info.AgeOrder == SiblingOrder.Older) return isTraditional ? "姐夫|连襟" : "姐夫|连襟"; 
-                else if (info.AgeOrder == SiblingOrder.Younger) return isTraditional ? "妹夫|连襟" : "妹夫|连襟"; 
-                else return isTraditional ? "姐夫|妹夫|连襟" : "姐夫|妹夫|连襟"; 
+                // NO 连襟 here. This is MY OWN sister's husband; 连襟 is the reciprocal between
+                // the husbands of two sisters, which he and I are not — he is my 姐夫 and I am
+                // his 內弟 / 姨妹. The female branch above never offered 妯娌 next to 嫂嫂 for
+                // the same reason; the asymmetry was the bug.
+                if (info.AgeOrder == SiblingOrder.Older) return "姐夫";
+                else if (info.AgeOrder == SiblingOrder.Younger) return "妹夫";
+                else return "姐夫|妹夫";
             }
         }
 
@@ -1001,18 +992,7 @@ public class KinshipNameFormatter
 
         if (context == NamingContext.Formal)
         {
-            // Determine prefix based on Top Level Lineage (Inner vs Outer)
-            // If IsTopLevelPaternal is false -> "外"
-            // Note: "IsPaternal" here determines the Uncle type (Bo/Shu/Gu vs Jiu/Yi).
-            // "IsTopLevelPaternal" determines the Lineage (Grandfather vs Maternal Grandfather).
-            
-            String lineagePrefix = info.IsTopLevelPaternal ? "" : "外";
-            
-            String suffix;
-            if (depth == 3) suffix = isSubjectMale ? "曾祖父" : "曾祖母";
-            else suffix = isSubjectMale ? "祖父" : "祖母";
-            
-            return $"{lineagePrefix}{prefix}{suffix}";
+            return BuildGrandCollateralStandard(info, depth, prefix, isSubjectMale);
         }
         else if (context == NamingContext.Colloquial)
         {
@@ -1020,14 +1000,31 @@ public class KinshipNameFormatter
             // (伯公|大伯公, 姑外婆, 舅公|舅爺…). Those are LOOKED-UP vocabulary, not computed
             // morphology, so they now come from the lexicon layers keyed by the standard form
             // this method computes above. Layers absent → empty, and the formal stays primary.
-            String lineagePrefix = info.IsTopLevelPaternal ? "" : "外";
-            String suffix;
-            if (depth == 3) suffix = isSubjectMale ? "曾祖父" : "曾祖母";
-            else suffix = isSubjectMale ? "祖父" : "祖母";
-
-            return Data.KinshipLexiconLayers.GetVariantSet($"{lineagePrefix}{prefix}{suffix}");
+            return Data.KinshipLexiconLayers.GetVariantSet(BuildGrandCollateralStandard(info, depth, prefix, isSubjectMale));
         }
         return "";
+    }
+
+    /// <summary>
+    /// Standard form for an elder collateral two or more generations up. The 外 marks the
+    /// maternal line and belongs AFTER the 伯/叔/姑/舅/姨 letter — 伯外祖父, matching the
+    /// morpheme machine's own composition (flavor + 外祖 + 父) in ChainShapeTermFormatter.
+    /// It used to be emitted here as 外伯祖父, so one relation had two standard spellings
+    /// depending on which chain the user typed (母→父→兄 vs 母→父→兄→兄).
+    /// </summary>
+    private static String BuildGrandCollateralStandard(KinshipSemanticInfo info, Int32 depth, String prefix, Boolean isSubjectMale)
+    {
+        String lineagePrefix = info.IsTopLevelPaternal ? "" : "外";
+        // The ladder used to be `depth == 3 ? 曾祖 : 祖`, so EVERY tier above the great-grand
+        // one — 高祖, 天祖, 烈祖 … — fell back to 祖 and a +4 relative was named as a +2. Same
+        // stem table the lineal formatter and the morpheme machine already use, which also puts
+        // this path back in step with ChainShapeTermFormatter's {flavor}{stem}{terminal}.
+        String stem = depth <= 2
+            ? "祖"
+            : (AscendStemHant.TryGetValue(depth, out String? s) ? s : $"{depth - 1}世祖");
+        String suffix = isSubjectMale ? "父" : "母";
+
+        return $"{prefix}{lineagePrefix}{stem}{suffix}";
     }
 
     private static readonly String[] CollateralMaleDescHans = { "侄", "侄孙", "曾侄孙", "玄侄孙", "来侄孙", "晜侄孙", "仍侄孙", "云侄孙" };
@@ -1064,6 +1061,25 @@ public class KinshipNameFormatter
     private static readonly String[] SororalFemaleDescHans = { "外甥女", "外甥孙女", "外甥曾孙女", "外甥玄孙女", "外甥来孙女" };
     private static readonly String[] SororalMaleDescHant = { "外甥", "外甥孫", "外甥曾孫", "外甥玄孫", "外甥來孫" };
     private static readonly String[] SororalFemaleDescHant = { "外甥女", "外甥孫女", "外甥曾孫女", "外甥玄孫女", "外甥來孫女" };
+
+    /// <summary>
+    /// Spouse's sister's descendant line: 姑甥 / 姑甥孫 / 姑甥曾孫 …. The depth used to be
+    /// dropped here — 姑甥 named the child, the grandchild and the great-great-grandchild alike,
+    /// four generations under one word — while the brother-side branch beside it has always
+    /// carried the ladder. Built off the sororal ladder so the two stay in step.
+    /// </summary>
+    private static String BuildSpouseSororalDesc(Int32 depth, Boolean isMale, Boolean isTraditional)
+    {
+        String sororal = isTraditional
+            ? BuildSororalDescHant(depth, isMale)
+            : BuildSororalDescHans(depth, isMale);
+
+        // 外甥孫女 -> 姑甥孫女: the 姑 marks the spouse's sister as the pivot, replacing the 外
+        // that marks a sister of my own.
+        return sororal.StartsWith(isTraditional ? "外" : "外", StringComparison.Ordinal)
+            ? "姑" + sororal[1..]
+            : "姑" + sororal;
+    }
 
     private static String BuildSororalDescHans(Int32 depth, Boolean isMale)
     {
@@ -1377,10 +1393,16 @@ public class KinshipNameFormatter
                     if (siblingIsMale) return isOlder ? "嫂子|嫂嫂" : "弟妹|弟媳";
                     else return isOlder ? "姐夫" : "妹夫";
                 }
-                else 
+                else
                 {
-                    if (siblingIsMale) return isOlder ? "舅嫂|大舅嫂" : "弟妹|舅弟媳"; 
-                    else return isOlder ? "姐夫|连襟" : "妹夫|连襟"; 
+                    if (siblingIsMale) return isOlder ? "舅嫂|大舅嫂" : "弟妹|舅弟媳";
+                    // Wife's sister's husband. 姐夫 is what my WIFE calls him; between him and
+                    // me the relation is 連襟, addressed 襟兄 / 襟弟. Leading with 姐夫 borrowed
+                    // her term wholesale — the male-sibling line right above does not do that
+                    // (it says 舅嫂, not her 嫂子). Same contract as FormatSpouseSiblingSpouse,
+                    // which names this very relation when the other analyzer claims the chain.
+                    if (context == NamingContext.Colloquial) return isOlder ? "连襟|姐夫" : "连襟|妹夫";
+                    return isOlder ? "襟兄" : "襟弟";
                 }
             }
 
@@ -1420,12 +1442,12 @@ public class KinshipNameFormatter
             {
                 if (context == NamingContext.Formal)
                 {
-                    return isMale ? (isTraditional ? "姑甥" : "姑甥") : (isTraditional ? "姑甥女" : "姑甥女");
+                    return BuildSpouseSororalDesc(depth, isMale, isTraditional);
                 }
                 else // Colloquial
                 {
-                    return isTraditional 
-                        ? BuildSororalDescHant(depth, isMale) 
+                    return isTraditional
+                        ? BuildSororalDescHant(depth, isMale)
                         : BuildSororalDescHans(depth, isMale); // This is "外甥女"
                 }
             }
@@ -1445,8 +1467,10 @@ public class KinshipNameFormatter
             {
                 if (context == NamingContext.Formal)
                 {
-                    // User specified "姑甥女" as the universal formal term for spouse's sister's daughter
-                    return isMale ? (isTraditional ? "姑甥" : "姑甥") : (isTraditional ? "姑甥女" : "姑甥女");
+                    // Operator ruling: 姑甥 / 姑甥女 regardless of WHICH side the spouse's sister
+                    // sits on — that ruling is kept. It says nothing about depth, and the flat
+                    // return used to apply it to the grandchild and beyond as well.
+                    return BuildSpouseSororalDesc(depth, isMale, isTraditional);
                 }
                 else // Colloquial
                 {

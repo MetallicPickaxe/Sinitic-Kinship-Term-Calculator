@@ -28,7 +28,12 @@ param(
     # writes the release directory during the build and then fails.
     # Never set during a real release.
     [ValidateSet('', 'live-writer', 'sign', 'before-swap', 'mid-swap')]
-    [string]$SimulateFailure = ''
+    [string]$SimulateFailure = '',
+    # Skip the release ZIP. For a local build you are going to run, not upload: the zip is a
+    # second compressed copy of the same exe, and on a machine short of disk it is 84 MB of
+    # nothing usable. Its manifest line is skipped with it, so the package stays self-consistent.
+    # A REAL release must not use this — the zip is the upload artifact.
+    [switch]$NoZip
 )
 
 $ErrorActionPreference = 'Stop'
@@ -291,6 +296,15 @@ $staging = Join-Path $repoRoot ("Distribution.staging-" + [Guid]::NewGuid().ToSt
     # so the same commit produced a different zip hash on every run. Built outside staging
     # so it cannot swallow itself; the zip's own hash goes into the loose manifest only (a
     # file cannot contain its own digest).
+    #
+    # -NoZip exists for the local build you are about to click through. The zip is the upload
+    # artifact and a second compressed copy of the same 216 MB exe; on a machine short of space
+    # it is 84 MB of nothing you can use. Skipping it also skips its manifest line, because a
+    # SHA256SUMS entry naming a file that is not there is a broken package, not a smaller one.
+    if ($NoZip) {
+        Write-Output 'ZIP skipped (-NoZip): package contains the runnable exe and its manifest only'
+    }
+    else {
     Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
     $commitTime = [DateTimeOffset]::Parse((git -C $repoRoot log -1 --format=%cI).Trim())
     $zipName = "$ProductName-$($rev.Substring(0, 9)).zip"
@@ -314,6 +328,7 @@ $staging = Join-Path $repoRoot ("Distribution.staging-" + [Guid]::NewGuid().ToSt
         if (Test-Path $zipTemp) { Remove-Item $zipTemp -Force }
     }
     "$((Get-FileHash (Join-Path $staging $zipName) -Algorithm SHA256).Hash)  $zipName" | Add-Content $manifest -Encoding ascii
+    }
 
     # ---- Final swap. The live path was parked before the build, so it must NOT exist now:
     # if it does, something wrote the release directory outside this transaction (the
@@ -358,6 +373,15 @@ catch {
     throw
 }
 
+# Strict document-reference check, HERE and only here. The ordinary mode defers paths that do
+# not exist yet, because in a fresh checkout the build outputs genuinely have not been produced;
+# that is correct there and useless as a guarantee. This is the one moment they all exist, so
+# it is the one moment a wrong path to a generated artifact — a renamed SHA256SUMS.txt, a moved
+# project.assets.json — can be caught rather than deferred forever. The review of 2026-08-02
+# noted that nothing in the repository ever ran this mode; that is what this call answers.
+& (Join-Path $PSScriptRoot '..\Utility\Scripts\Test-DocReferences.ps1') -RequireArtifacts
+if ($LASTEXITCODE -ne 0) { throw 'Shipping documents point at build outputs that were not produced' }
+
 $size = [Math]::Round((Get-Item (Join-Path $distribution "$ProductName.exe")).Length / 1MB, 1)
 $layerCount = (Get-ChildItem (Join-Path $distribution 'Lexicon') -Filter '*.yaml').Count
 # The generated .NET note is ours, not a vendor file — count them separately so the
@@ -366,4 +390,5 @@ $licenseFiles = @(Get-ChildItem (Join-Path $distribution 'ThirdPartyLicenses') -
 $vendorCount = @($licenseFiles | Where-Object { $_.Name -ne 'DotNet-Windows-Licensing.md' }).Count
 $entryCount = (Get-Content (Join-Path $distribution 'SHA256SUMS.txt')).Count
 $signState = if ($SignCommand) { 'signed' } else { 'UNSIGNED' }
-Write-Output "Published ($signState): Distribution\$ProductName.exe (${size} MB) + Lexicon\ ($layerCount layers) + $vendorCount vendor license files + 1 generated note + BUILDINFO + ZIP | SHA256SUMS.txt ($entryCount entries)"
+$zipState = if ($NoZip) { 'no ZIP' } else { 'ZIP' }
+Write-Output "Published ($signState): Distribution\$ProductName.exe (${size} MB) + Lexicon\ ($layerCount layers) + $vendorCount vendor license files + 1 generated note + BUILDINFO + $zipState | SHA256SUMS.txt ($entryCount entries)"

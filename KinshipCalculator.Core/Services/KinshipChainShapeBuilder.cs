@@ -50,11 +50,12 @@ public static class KinshipChainShapeBuilder
 		}
 
 		List<PersonGender> descent = new ();
+		Boolean adoptiveDescent = false;
 		while ( index < tokens.Count && TryGetChildGender ( tokens [ index ] , out PersonGender childGender , out Boolean childIsAdoptive ) )
 		{
 			if ( childIsAdoptive )
 			{
-				return null;
+				adoptiveDescent = true;
 			}
 
 			descent.Add ( childGender );
@@ -87,7 +88,17 @@ public static class KinshipChainShapeBuilder
 			return null;
 		}
 
-		return new KinshipChainShape ( ascent , branch , descent , leadingSpouse , trailingSpouse , selfGender , adoptiveAscent );
+		// E4 opens the downward pair 養子/養女 and NOTHING else. Anything deeper or wider than the
+		// bare 自己→養子 — an adopted child's own children, an adopted child's spouse, an adoptive
+		// link buried in a longer descent — keeps the legacy bail-out it has always had, so the
+		// four words this contract names are the only naming that moves.
+		if ( adoptiveDescent
+			&& ( ascent.Count > 0 || branch is not null || leadingSpouse || trailingSpouse || descent.Count != 1 ) )
+		{
+			return null;
+		}
+
+		return new KinshipChainShape ( ascent , branch , descent , leadingSpouse , trailingSpouse , selfGender , adoptiveAscent , adoptiveDescent );
 	}
 
 	private static Boolean IsSpouse ( KinshipToken token )

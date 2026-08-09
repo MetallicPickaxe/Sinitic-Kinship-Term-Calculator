@@ -1,0 +1,22 @@
+# 客家 · 客語
+#
+# 鍵 = 標準形(引擎算出的主位詞);值 = 該層的地方/語域形。本層可停用、可替換;
+# 停用後主位仍為標準漢語,不影響引擎正確性。
+#
+# 生成自 Resource\Data\Reference\LEXICON_PILOT_DECISIONS.tsv(Utility\Scripts\Build-LexiconLayers.ps1)。
+# 詞源:mumuy/relationship(MIT)之稱謂集合;
+# 【分層歸屬為本專案裁決,mumuy 資料本身不帶任何地域/語域欄位】。
+meta:
+  id: dialect-hakka
+  name: 客家
+  layer: dialect
+  region: 客語
+  provenance: 詞形採自 mumuy(MIT)稱謂集合;分層由本專案裁決(LEXICON_PILOT_DECISIONS.tsv)
+  default_enabled: true
+variants:
+  兒子: [后生]
+  舅父: [母舅]
+  妹妹: [阿妹]
+  岳父: [家公]
+  岳母: [家婆]
+  祖母: [祖嫲]

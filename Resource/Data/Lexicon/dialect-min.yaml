@@ -1,0 +1,57 @@
+# 閩語 · 閩台(「囝」「依」系)
+#
+# 鍵 = 標準形(引擎算出的主位詞);值 = 該層的地方/語域形。本層可停用、可替換;
+# 停用後主位仍為標準漢語,不影響引擎正確性。
+#
+# 生成自 Resource\Data\Reference\LEXICON_PILOT_DECISIONS.tsv(Utility\Scripts\Build-LexiconLayers.ps1)。
+# 詞源:mumuy/relationship(MIT)之稱謂集合;
+# 【分層歸屬為本專案裁決,mumuy 資料本身不帶任何地域/語域欄位】。
+meta:
+  id: dialect-min
+  name: 閩語
+  layer: dialect
+  region: 閩台(「囝」「依」系)
+  provenance: 詞形採自 mumuy(MIT)稱謂集合;分層由本專案裁決(LEXICON_PILOT_DECISIONS.tsv)
+  default_enabled: true
+variants:
+  伯父: [阿伯, 依伯]
+  弟弟: [依弟]
+  兒媳: [新妇, 新妇囝]
+  兒子: [囝男, 囝儿, 囝]
+  父親: [阿爸, 依爹]
+  哥哥: [依哥]
+  姑母: [姑嬷, 姑仔]
+  姐姐: [依姐, 姊仔]
+  舅父: [母舅, 阿舅, 舅仔]
+  妹妹: [依妹]
+  母親: [阿妈, 阿母, 依妈]
+  女婿: [囝婿]
+  叔父: [阿叔, 依叔, 叔仔]
+  孫子: [孙仔, 孙囝]
+  外甥: [甥仔]
+  外祖母: [外嬷]
+  姨母: [姨嬷, 姨仔]
+  岳父: [大官, 老人公, 大人公, 家官, 丈人公]
+  岳母: [家娘, 老人婆, 大人婆, 阿姑]
+  姪子: [侄仔]
+  祖父: [祖公, 阿爷, 依爷]
+  祖母: [祖婆, 依奶]
+
+  # ↓ 由 Utility\Scripts\Build-LexiconLayers.ps1 自 LEXICON_PILOT_DECISIONS.tsv 生成
+  伯母: [依姆, 大嬷, 姆]
+  曾祖母: [太嬷, 太姆]
+  大舅子: [大阿舅]
+  姑父: [恩伯, 恩叔, 恩爸]
+  姑祖母: [恩婆]
+  舅母: [舅嬷, 舅姆, 阿妗]
+  嫂嫂: [阿嫂]
+  婶母: [阿婶, 依婶]
+  小舅子: [小阿舅]
+
+  # ↓ 由 Utility\Scripts\Build-LexiconLayers.ps1 自 LEXICON_PILOT_DECISIONS.tsv 生成
+  伯祖母: [姆婆]
+  弟媳: [弟新妇]
+  姑外祖父: [恩爹]
+  姑祖父: [恩爹]
+  孙媳: [孙新妇]
+  外孙媳: [外孙新妇]

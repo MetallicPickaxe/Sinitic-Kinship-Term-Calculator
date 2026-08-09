@@ -1,0 +1,45 @@
+# 吳語 · 蘇滬浙(「囡」系)
+#
+# 鍵 = 標準形(引擎算出的主位詞);值 = 該層的地方/語域形。本層可停用、可替換;
+# 停用後主位仍為標準漢語,不影響引擎正確性。
+#
+# 生成自 Resource\Data\Reference\LEXICON_PILOT_DECISIONS.tsv(Utility\Scripts\Build-LexiconLayers.ps1)。
+# 詞源:mumuy/relationship(MIT)之稱謂集合;
+# 【分層歸屬為本專案裁決,mumuy 資料本身不帶任何地域/語域欄位】。
+meta:
+  id: dialect-wu
+  name: 吳語
+  layer: dialect
+  region: 蘇滬浙(「囡」系)
+  provenance: 詞形採自 mumuy(MIT)稱謂集合;分層由本專案裁決(LEXICON_PILOT_DECISIONS.tsv)
+  default_enabled: true
+variants:
+  弟弟: [阿弟]
+  兒媳: [新妇]
+  兒子: [后生]
+  父親: [阿爸, 阿爹]
+  姑母: [娘娘]
+  姐姐: [阿姐]
+  舅父: [娘舅]
+  母親: [阿妈, 阿娘, 姆嬷, 姆妈]
+  女兒: [囡囡, 囡女, 囡儿, 乖囡]
+  女婿: [囡婿]
+  叔父: [叔爹, 小爹]
+  孫女: [孙囡, 孙囡儿]
+  外甥女: [甥囡]
+  外孫女: [外孙囡]
+  外祖母: [阿婆, 好婆]
+  姨母: [姨娘]
+  岳父: [丈人公]
+  岳母: [丈人娘, 丈人婆, 丈姆, 丈姆婆, 丈姆娘]
+  姪女: [侄囡]
+  祖父: [阿爷]
+  祖母: [阿奶, 阿婆, 亲婆]
+
+  # ↓ 由 Utility\Scripts\Build-LexiconLayers.ps1 自 LEXICON_PILOT_DECISIONS.tsv 生成
+  伯母: [大姆妈]
+  伯祖父: [大阿爷]
+  大舅子: [大阿舅]
+  舅母: [舅姆妈]
+  婶母: [小娘]
+  小舅子: [小阿舅]

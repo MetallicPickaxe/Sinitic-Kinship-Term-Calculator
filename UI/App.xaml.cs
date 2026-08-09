@@ -70,14 +70,9 @@ namespace UI
 
 			ApplicationOptions appOptions = new ();
 			configuration.Bind ( appOptions );
-			if ( appOptions.Languages.Count == 0 )
-			{
-				// Traditional first = the default (Languages.First()). Fallback list used only when
-				// appsettings.yaml supplies none.
-				appOptions.Languages.Add ( new LanguageOption { Key = "zh-Hant" , Display = "繁體中文" } );
-				appOptions.Languages.Add ( new LanguageOption { Key = "zh-Hans" , Display = "简体中文" } );
-				appOptions.Languages.Add ( new LanguageOption { Key = "en" , Display = "English" } );
-			}
+			// The language fallback list was here. Round-2 contract R5/U8 withdrew the choice —
+			// terms are always Traditional, chrome is always English — so there is no list to
+			// seed and nothing left for appsettings.yaml to override.
 
 			ServiceCollection services = new ();
 			services.AddSingleton<IConfiguration> ( configuration );

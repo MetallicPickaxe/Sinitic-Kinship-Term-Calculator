@@ -9,7 +9,7 @@
 
 	<Identity
 		Name="f0ffa469-7935-49ca-8956-ec9f0336a4ae"
-		Publisher="CN=francis"
+		Publisher="CN=MetallicPickaxe"
 		Version="1.0.0.0" />
 
 	<mp:PhoneIdentity PhoneProductId="f0ffa469-7935-49ca-8956-ec9f0336a4ae"
@@ -17,7 +17,7 @@
 
 	<Properties>
 		<DisplayName>Test</DisplayName>
-		<PublisherDisplayName>francis</PublisherDisplayName>
+		<PublisherDisplayName>Metallic Pickaxe</PublisherDisplayName>
 		<Logo>Assets\StoreLogo.png</Logo>
 	</Properties>
 

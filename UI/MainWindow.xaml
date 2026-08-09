@@ -8,163 +8,478 @@
     mc:Ignorable="d"
     Title="Sinitic Kinship Term Calculator">
 
-	<Grid x:Name="Root"  Padding="16" RowSpacing="12" DataContext="{x:Bind ViewModel, Mode=OneWay}">
+	<!--
+	LAYOUT NOTES — read before moving anything.
+
+	ONE LANGUAGE RULE (round-2 contract, R5/R6). Terms are always Traditional; everything around
+	them is always English. There is no picker: the capability was withdrawn, not defaulted. The
+	only Han in the chrome is the content itself — the answer, the chip words, the Chinese path
+	line, the keypad tokens, and the 的-chain that separates two readings of one word. Source and
+	attribution tags are English scholarly names (Wu, Yue (Cantonese), Min, Xiang, Hakka), and the
+	visible UI does not use the word "Chinese" anywhere.
+
+	The rest, in the order a reader meets it:
+	  • Path is a caption plus two lines, Chinese then English. Small on purpose — it is the
+	    question, not the answer, and a long one has to stay readable rather than dominate.
+	  • ONE reading = one card, and the card owns the big term.
+	  • The 的-chain appears only where it disambiguates two readings that came out the same word.
+	  • Other names wrap across the full width. When there are none the WHOLE block including its
+	    heading does not render: a caption reading "nothing recorded" is a sign saying nothing is
+	    here, and the answer is to not put up the sign.
+	  • The keypad is a family tree, not a 3x3 of whatever came next in the list.
+	-->
+	<Grid x:Name="Root" Padding="16" RowSpacing="10" DataContext="{x:Bind ViewModel, Mode=OneWay}">
+		<!-- The ANSWER takes the slack; the keypad takes exactly its own height. -->
 		<Grid.RowDefinitions>
-			<RowDefinition Height="Auto" />
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="*" />
 			<RowDefinition Height="Auto" />
 		</Grid.RowDefinitions>
 
-		<StackPanel Orientation="Horizontal" Spacing="8">
-			<TextBlock Text="Language:" VerticalAlignment="Center" />
-			<ComboBox Width="160"
-                      ItemsSource="{Binding Languages}"
-                      DisplayMemberPath="Display"
-                      SelectedValuePath="Key"
-                      SelectedValue="{Binding SelectedLanguage, Mode=TwoWay}" />
-			<TextBlock Text="Gender:" VerticalAlignment="Center" />
-			<ComboBox Width="120"
-                      ItemsSource="{Binding GenderOptions}"
-                      DisplayMemberPath="Display"
-                      SelectedItem="{Binding SelectedGenderOption, Mode=TwoWay}" />
-			<StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
-				<TextBlock Text="Origin:" VerticalAlignment="Center" />
-				<StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
-					<RadioButton Content="Birth"
-                                 IsChecked="{x:Bind ViewModel.IsBiologicalOrigin, Mode=TwoWay}" />
-					<RadioButton Content="Adopted"
-                                 IsChecked="{x:Bind ViewModel.IsAdoptiveOrigin, Mode=TwoWay}" />
-					<RadioButton Content="Step"
-                                 IsChecked="{x:Bind ViewModel.IsStepOrigin, Mode=TwoWay}" />
+		<!-- ================= CONTROL BAR ================= -->
+		<Grid Grid.Row="0" ColumnSpacing="20">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="*" />
+				<ColumnDefinition Width="Auto" />
+			</Grid.ColumnDefinitions>
+
+			<!-- Centred, not bottom-aligned: the action stack on the right is two rows tall, and
+			     aligning to its bottom edge dropped the pickers to the floor of the bar. -->
+			<StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+				<!-- The Language picker was HERE and is gone (U8). Not collapsed — removed. -->
+
+				<!-- "Speaking as", not "Gender" and not "Sex". The field does not ask who the
+				     reader IS; it asks whose mouth the term comes out of, because the terms differ
+				     by that and by nothing else here — a woman calls her husband's father 公公, a
+				     man calls his wife's father 岳父. -->
+				<ComboBox Width="140"
+                          Header="Speaking as"
+                          ItemsSource="{Binding GenderOptions}"
+                          DisplayMemberPath="Display"
+                          SelectedItem="{Binding SelectedGenderOption, Mode=TwoWay}" />
+
+				<!-- The "Relation is by" row lived here: a caption and three RadioButtons holding a
+				     MODE that the next key press consumed and then silently reset. The user set it,
+				     pressed a key, and watched it snap back — a control that is telling the truth
+				     or not depending on when you look at it. Round-3 V2 removed the mode rather
+				     than making it stickier: the three forms are on the keys now (press and hold,
+				     or right-click), chosen per press, with nothing left over afterwards.
+				     Birth / Adoption / Step went with it — the menu says 父 / 養父 / 繼父. -->
+			</StackPanel>
+
+			<!-- U4: text-editing-grade actions, laid out and weighted like it. Undo and Clear share
+			     the top row as an accented pair — they are the two you reach for while building a
+			     path, the equivalents of backspace and clear-all. History sits under them, wide and
+			     unaccented: also frequent, but a different kind of act. -->
+			<StackPanel Grid.Column="2" Spacing="8" VerticalAlignment="Bottom">
+				<StackPanel Orientation="Horizontal" Spacing="8">
+					<Button Content="Undo" Command="{Binding UndoCommand}"
+							Style="{StaticResource AccentButtonStyle}"
+							Height="46" MinWidth="112" FontSize="16" />
+					<Button Content="Clear" Command="{Binding ClearCommand}"
+							Style="{StaticResource AccentButtonStyle}"
+							Height="46" MinWidth="112" FontSize="16" />
 				</StackPanel>
-			</StackPanel>
-			<Button Content="Undo" Command="{Binding UndoCommand}" />
-			<Button Content="Clear" Command="{Binding ClearCommand}" />
-		</StackPanel>
-
-		<StackPanel Grid.Row="1" Spacing="8">
-			<StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
-				<TextBlock Text="Path" Style="{ThemeResource SubtitleTextBlockStyle}" />
-				<Button Style="{StaticResource AccentButtonStyle}"
-                        Command="{Binding CopyPathCommand}"
-                        ToolTipService.ToolTip="Copy path"
-                        Padding="4"
-                        MinWidth="32"
-                        MinHeight="32">
-					<SymbolIcon Symbol="Copy" />
-				</Button>
-			</StackPanel>
-			<TextBlock Text="{Binding PathText}" TextWrapping="Wrap" />
-			<!-- Layer 4, raw calibration: the chain exactly as entered, never simplified, so the
-			     reader can confirm the engine understood the input. -->
-			<TextBlock Text="{Binding RawChainText}" TextWrapping="Wrap" FontSize="12"
-					   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-			<StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="4">
-				<TextBlock Text="Result" Style="{ThemeResource SubtitleTextBlockStyle}" />
-				<Button Style="{StaticResource AccentButtonStyle}"
-                        Command="{Binding CopyResultCommand}"
-                        ToolTipService.ToolTip="Copy result"
-                        Padding="4"
-                        MinWidth="32"
-                        MinHeight="32">
-					<SymbolIcon Symbol="Copy" />
-				</Button>
-			</StackPanel>
-			<TextBlock Text="{Binding ResultText}" FontSize="28" FontWeight="Bold" TextWrapping="Wrap" />
-			<TextBlock Text="{Binding StatusHint}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-			<InfoBar IsOpen="{Binding IsNotificationVisible}"
-                     Severity="Success"
-                     IsClosable="False"
-                     Message="{Binding NotificationMessage}"
-                     Margin="0,8,0,0" />
-			<ScrollViewer Margin="0,8,0,0"
-                          MaxHeight="200"
-                          VerticalScrollBarVisibility="Auto">
-				<ItemsControl ItemsSource="{Binding ResultOptions}">
-					<ItemsControl.ItemTemplate>
-						<DataTemplate x:DataType="vm:ResultInterpretation">
-							<Grid Margin="0,0,0,12">
-								<Grid.RowDefinitions>
-									<RowDefinition Height="Auto" />
-									<RowDefinition Height="Auto" />
-									<RowDefinition Height="Auto" />
-								</Grid.RowDefinitions>
-								<Grid.ColumnDefinitions>
-									<ColumnDefinition Width="*" />
-									<ColumnDefinition Width="*" />
-									<ColumnDefinition Width="*" />
-								</Grid.ColumnDefinitions>
-
-								<StackPanel Grid.Column="0" Spacing="2">
-									<TextBlock Text="Standard" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-									<TextBlock Text="{x:Bind StandardLabel}" FontWeight="SemiBold" />
+				<Button Content="History" Height="40" HorizontalAlignment="Stretch" FontSize="15"
+						Background="{ThemeResource AccentFillColorSecondaryBrush}">
+					<Button.Flyout>
+						<Flyout>
+							<StackPanel Width="420" Spacing="8">
+								<StackPanel Orientation="Horizontal" Spacing="8">
+									<TextBlock Text="Recent queries" Style="{ThemeResource SubtitleTextBlockStyle}" VerticalAlignment="Center" />
+									<Button Content="Clear history" Command="{Binding ClearHistoryCommand}" />
 								</StackPanel>
-
-								<StackPanel Grid.Column="1" Spacing="4">
-									<TextBlock Text="Other names" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-									<!-- K15/K16: CANDIDATES ONLY. Each chip carries the lexicon layer it
-									     came from (南系 / 北系 / 通用口語 / user layer); the chosen answer
-									     stays the standard term in the first column. Empty collection
-									     renders nothing, so no visibility converter is needed. -->
-									<ItemsControl ItemsSource="{x:Bind Variants}">
+								<!-- Said plainly: nothing here survives closing the app. Claiming more than
+								     the implementation does is the failure this note exists to avoid. -->
+								<TextBlock Text="This session only — history is not kept after the app closes."
+										   FontSize="12" TextWrapping="Wrap"
+										   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+								<TextBlock Text="No queries yet."
+										   FontSize="12" FontStyle="Italic"
+										   Visibility="{Binding HistoryEmptyVisibility}"
+										   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+								<ScrollViewer MaxHeight="320" VerticalScrollBarVisibility="Auto">
+									<ItemsControl ItemsSource="{Binding History}">
 										<ItemsControl.ItemTemplate>
-											<DataTemplate x:DataType="vm:VariantChip">
-												<Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
-														BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-														BorderThickness="1" CornerRadius="4" Padding="6,2" Margin="0,0,0,4">
-													<TextBlock Text="{x:Bind Display}" FontSize="12" TextWrapping="Wrap" />
-												</Border>
+											<DataTemplate x:DataType="vm:QueryHistoryEntry">
+												<!-- The command rides on the ENTRY. A flyout is its own popup tree,
+												     so an ElementName binding back to the page silently resolves to
+												     null and leaves an inert row that still looks clickable. -->
+												<Button HorizontalAlignment="Stretch"
+														HorizontalContentAlignment="Left"
+														Margin="0,0,0,4"
+														Command="{x:Bind RestoreCommand}"
+														CommandParameter="{x:Bind}">
+													<StackPanel Spacing="2">
+														<StackPanel Orientation="Horizontal" Spacing="6">
+															<TextBlock Text="{x:Bind ResultText}" FontWeight="SemiBold" />
+															<TextBlock Text="{x:Bind EgoDisplay}" Opacity="0.7" />
+															<!-- RESTORED. Removing this was out of scope: U4 names the History
+															     flyout's contents as off limits, and F2 is a closed acceptance
+															     face. With the language picker gone the tag is the same on
+															     every row, which is a fair thing to raise — as its own item,
+															     not as something smuggled into a round about button sizes. -->
+															<TextBlock Text="{x:Bind Language}" FontSize="11" Opacity="0.6" VerticalAlignment="Center" />
+														</StackPanel>
+														<TextBlock Text="{x:Bind PathDisplay}" FontSize="12" TextWrapping="Wrap" Opacity="0.8" />
+													</StackPanel>
+												</Button>
 											</DataTemplate>
 										</ItemsControl.ItemTemplate>
 									</ItemsControl>
-								</StackPanel>
+								</ScrollViewer>
+							</StackPanel>
+						</Flyout>
+					</Button.Flyout>
+				</Button>
+			</StackPanel>
+		</Grid>
 
-								<StackPanel Grid.Column="2" Spacing="2">
-									<!-- Layer 3, documentary chain: always present, never contracted. -->
-									<TextBlock Text="Formal description" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-									<TextBlock Text="{x:Bind DescriptiveChain}" TextWrapping="Wrap" />
-									<TextBlock Text="Structural path" FontSize="12" Margin="0,6,0,0" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-									<TextBlock Text="{x:Bind OfficialLabel}" TextWrapping="Wrap" Opacity="0.8" />
-								</StackPanel>
+		<!-- ================= PATH + ANSWER ================= -->
+		<Grid Grid.Row="1" RowSpacing="8">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="*" />
+			</Grid.RowDefinitions>
 
-								<TextBlock Grid.Row="1"
-                                           Grid.ColumnSpan="3"
-                                           Text="{x:Bind Explanation}"
-                                           TextWrapping="Wrap"
-                                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                                           Margin="0,2,0,0" />
-							</Grid>
+			<!-- U3: the caption came back, same 12pt secondary grey as the control headers. -->
+			<StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left">
+				<StackPanel Spacing="1" MaxWidth="900">
+					<TextBlock Text="Path" FontSize="12" Margin="0,0,0,2"
+							   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+					<TextBlock Text="{Binding PathText}" TextWrapping="Wrap" FontSize="15" />
+					<TextBlock Text="{Binding PathTextEnglish}" TextWrapping="Wrap" FontSize="13"
+							   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+				</StackPanel>
+				<Button VerticalAlignment="Bottom"
+                        Command="{Binding CopyPathCommand}"
+                        ToolTipService.ToolTip="Copy path"
+                        Padding="6" MinWidth="36" MinHeight="36">
+					<SymbolIcon Symbol="Copy" />
+				</Button>
+			</StackPanel>
+
+			<InfoBar Grid.Row="1" IsOpen="{Binding IsNotificationVisible}"
+                     Severity="Success"
+                     IsClosable="False"
+                     Message="{Binding NotificationMessage}" />
+
+			<!-- U6: three readings is the common ceiling and all three have to fit at the default
+			     window size. The card is tightened to earn that: 12,10 padding, 4 spacing, and the
+			     Other-names block disappearing entirely when empty (U9). -->
+			<ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+				<ItemsControl ItemsSource="{Binding ResultOptions}">
+					<ItemsControl.ItemTemplate>
+						<DataTemplate x:DataType="vm:ResultInterpretation">
+							<Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+									BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+									BorderThickness="1" CornerRadius="8"
+									Padding="12,8" Margin="0,0,0,6">
+								<StackPanel Spacing="3">
+
+									<Border Visibility="{x:Bind ReadingLabelVisibility}"
+											Background="{ThemeResource AccentFillColorSecondaryBrush}"
+											CornerRadius="4" Padding="8,2"
+											HorizontalAlignment="Left">
+										<TextBlock Text="{x:Bind ReadingLabel}" FontSize="12" FontWeight="SemiBold" />
+									</Border>
+
+									<!-- THE ANSWER. 34pt is fixed by the previous round's acceptance
+									     and is not what gets traded away to fit three cards. -->
+									<StackPanel Orientation="Horizontal" Spacing="10">
+										<TextBlock Text="{x:Bind StandardLabel}" FontSize="34" FontWeight="Bold" TextWrapping="Wrap" />
+										<Button VerticalAlignment="Center"
+												Command="{Binding DataContext.CopyResultCommand, ElementName=Root}"
+												ToolTipService.ToolTip="Copy result"
+												Padding="6" MinWidth="36" MinHeight="36">
+											<SymbolIcon Symbol="Copy" />
+										</Button>
+									</StackPanel>
+
+									<!-- The relation's English name. Hidden when it would repeat the
+									     term above it. -->
+									<TextBlock Text="{x:Bind OfficialLabel}"
+											   Visibility="{x:Bind EnglishNameVisibility}"
+											   FontSize="14" TextWrapping="Wrap"
+											   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+
+									<!-- The 的-chain, ONLY where it is the one thing separating this
+									     reading from another with the same word (父的姐 against
+									     父的妹, both named 姑母). -->
+									<TextBlock Text="{x:Bind DescriptiveChain}"
+											   Visibility="{x:Bind DisambiguationVisibility}"
+											   FontSize="14" TextWrapping="Wrap" FontWeight="SemiBold" />
+
+									<!-- OTHER NAMES. The whole block, heading and disclaimer with it,
+									     is bound to VariantsVisibility: nothing recorded means nothing
+									     rendered, not a caption announcing the absence (U9). -->
+									<StackPanel Visibility="{x:Bind VariantsVisibility}" Spacing="4" Margin="0,4,0,0">
+										<StackPanel Orientation="Horizontal" Spacing="8">
+											<TextBlock Text="Other names" FontSize="12"
+													   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+											<!-- U5: one line, said plainly. These are harvested and
+											     rule-composed, not attested by an authority, and the
+											     reader is entitled to know that before quoting one. -->
+											<TextBlock Text="— gathered and machine-composed"
+													   FontSize="12" FontStyle="Italic" TextWrapping="Wrap"
+													   Foreground="{ThemeResource TextFillColorTertiaryBrush}" />
+										</StackPanel>
+										<!-- V3: SECTIONS, not a flat run of chips. The old list repeated its
+										     own labels — 爸爸 · everyday speech, 老爸 · everyday speech,
+										     老父親 · everyday speech — so the eye had to strip the same
+										     suffix off every one to find the words. Seventeen chips carried
+										     seven distinct tags. The tag is a heading printed once; the chips
+										     go back to being bare words. The attribution MOVES, it does not
+										     go away. -->
+										<ItemsControl ItemsSource="{x:Bind VariantGroups}">
+											<ItemsControl.ItemTemplate>
+												<DataTemplate x:DataType="vm:VariantGroup">
+													<Grid Margin="0,2,0,4" ColumnSpacing="10">
+														<Grid.ColumnDefinitions>
+															<ColumnDefinition Width="120" />
+															<ColumnDefinition Width="*" />
+														</Grid.ColumnDefinitions>
+														<!-- Heading in its own column so the words line up down the
+														     page instead of starting wherever the label ended. -->
+														<TextBlock Text="{x:Bind Header}" FontSize="12"
+																   TextWrapping="Wrap" VerticalAlignment="Top" Margin="0,3,0,0"
+																   Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+														<ItemsRepeater Grid.Column="1" ItemsSource="{x:Bind Chips}">
+															<ItemsRepeater.Layout>
+																<!-- Bare words are short and even, so a narrow uniform cell
+																     no longer risks the clipping the tagged chips did. -->
+																<UniformGridLayout MinItemWidth="104" MinItemHeight="28"
+																				   MinRowSpacing="4" MinColumnSpacing="4"
+																				   ItemsStretch="None" />
+															</ItemsRepeater.Layout>
+															<ItemsRepeater.ItemTemplate>
+																<DataTemplate x:DataType="vm:VariantChip">
+																	<Border Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+																			BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+																			BorderThickness="1" CornerRadius="6" Padding="10,3">
+																		<TextBlock Text="{x:Bind Term}" FontSize="14" TextWrapping="NoWrap" />
+																	</Border>
+																</DataTemplate>
+															</ItemsRepeater.ItemTemplate>
+														</ItemsRepeater>
+													</Grid>
+												</DataTemplate>
+											</ItemsControl.ItemTemplate>
+										</ItemsControl>
+									</StackPanel>
+								</StackPanel>
+							</Border>
 						</DataTemplate>
 					</ItemsControl.ItemTemplate>
 				</ItemsControl>
 			</ScrollViewer>
-		</StackPanel>
+		</Grid>
 
-		<ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
-			<ListView  x:Name="TokensList" ItemsSource="{Binding TokenButtons}">
-				<ListView.ItemsPanel>
-					<ItemsPanelTemplate>
-						<ItemsWrapGrid Orientation="Horizontal"/>
-					</ItemsPanelTemplate>
-				</ListView.ItemsPanel>
+		<!-- ================= KEYPAD (U7) =================
+		     A family tree, not nine buttons in list order:
 
-				<ListView.ItemTemplate>
-					<DataTemplate x:DataType="vm:TokenDisplay">
-						<Button Content="{x:Bind Label}"
-                                Width="110"
-                                Height="64"
-                                Margin="4"
-                                Command="{x:Bind AppendCommand}"
-                                CommandParameter="{x:Bind}" />
-					</DataTemplate>
-				</ListView.ItemTemplate>
-			</ListView>
-		</ScrollViewer>
+		         父        母          elders, mirrored about the centre column
+		     兄  弟  配偶  姐  妹      own generation, 配偶 dead centre
+		         子        女          juniors, mirrored the same way
 
-		<TextBlock Grid.Row="3"
-                   HorizontalAlignment="Center"
-                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                   Text="Tap tokens to build a relationship path" />
+		     Five columns; 兄弟 left of centre and 姐妹 right of it, as the contract draws it. Each
+		     cell names its token, so the shape cannot drift when the token list is reordered. -->
+		<Grid Grid.Row="2" HorizontalAlignment="Center" RowSpacing="5" ColumnSpacing="5">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+			</Grid.RowDefinitions>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+			</Grid.ColumnDefinitions>
+
+			<Button Grid.Row="0" Grid.Column="1" Width="98" Height="50" FontSize="18"
+					HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+					AutomationProperties.Name="{x:Bind ViewModel.TokenFather.Label, Mode=OneWay}"
+					Command="{x:Bind ViewModel.AppendTokenCommand}"
+					CommandParameter="{x:Bind ViewModel.TokenFather, Mode=OneWay}">
+			<Button.ContextFlyout>
+				<!-- ContextFlyout covers BOTH routes the contract asks for with one mechanism: it
+				     opens on right-click and on touch press-and-hold, because both raise
+				     ContextRequested. No second gesture handler, so the two paths cannot drift
+				     apart. MenuFlyout rather than a plain Flyout because it dismisses itself when
+				     an item is chosen. -->
+				<MenuFlyout>
+					<MenuFlyoutItem Text="{x:Bind ViewModel.TokenFather.Variants[0].Label, Mode=OneWay}"
+									Command="{x:Bind ViewModel.AppendVariantCommand}"
+									CommandParameter="{x:Bind ViewModel.TokenFather.Variants[0], Mode=OneWay}" />
+					<MenuFlyoutItem Text="{x:Bind ViewModel.TokenFather.Variants[1].Label, Mode=OneWay}"
+									Command="{x:Bind ViewModel.AppendVariantCommand}"
+									CommandParameter="{x:Bind ViewModel.TokenFather.Variants[1], Mode=OneWay}" />
+					<MenuFlyoutItem Text="{x:Bind ViewModel.TokenFather.Variants[2].Label, Mode=OneWay}"
+									Command="{x:Bind ViewModel.AppendVariantCommand}"
+									CommandParameter="{x:Bind ViewModel.TokenFather.Variants[2], Mode=OneWay}" />
+				</MenuFlyout>
+			</Button.ContextFlyout>
+				<Grid>
+					<TextBlock Text="{x:Bind ViewModel.TokenFather.Label, Mode=OneWay}" FontSize="18"
+							   HorizontalAlignment="Center" VerticalAlignment="Center" />
+					<Ellipse Width="5" Height="5" Margin="0,4,4,0"
+							 HorizontalAlignment="Right" VerticalAlignment="Top"
+							 Fill="{ThemeResource AccentFillColorDefaultBrush}"
+							 Visibility="{x:Bind ViewModel.TokenFather.HasVariants, Mode=OneWay}" />
+				</Grid>
+			</Button>
+			<Button Grid.Row="0" Grid.Column="3" Width="98" Height="50" FontSize="18"
+					HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+					AutomationProperties.Name="{x:Bind ViewModel.TokenMother.Label, Mode=OneWay}"
+					Command="{x:Bind ViewModel.AppendTokenCommand}"
+					CommandParameter="{x:Bind ViewModel.TokenMother, Mode=OneWay}">
+			<Button.ContextFlyout>
+				<!-- ContextFlyout covers BOTH routes the contract asks for with one mechanism: it
+				     opens on right-click and on touch press-and-hold, because both raise
+				     ContextRequested. No second gesture handler, so the two paths cannot drift
+				     apart. MenuFlyout rather than a plain Flyout because it dismisses itself when
+				     an item is chosen. -->
+				<MenuFlyout>
+					<MenuFlyoutItem Text="{x:Bind ViewModel.TokenMother.Variants[0].Label, Mode=OneWay}"
+									Command="{x:Bind ViewModel.AppendVariantCommand}"
+									CommandParameter="{x:Bind ViewModel.TokenMother.Variants[0], Mode=OneWay}" />
+					<MenuFlyoutItem Text="{x:Bind ViewModel.TokenMother.Variants[1].Label, Mode=OneWay}"
+									Command="{x:Bind ViewModel.AppendVariantCommand}"
+									CommandParameter="{x:Bind ViewModel.TokenMother.Variants[1], Mode=OneWay}" />
+					<MenuFlyoutItem Text="{x:Bind ViewModel.TokenMother.Variants[2].Label, Mode=OneWay}"
+									Command="{x:Bind ViewModel.AppendVariantCommand}"
+									CommandParameter="{x:Bind ViewModel.TokenMother.Variants[2], Mode=OneWay}" />
+				</MenuFlyout>
+			</Button.ContextFlyout>
+				<Grid>
+					<TextBlock Text="{x:Bind ViewModel.TokenMother.Label, Mode=OneWay}" FontSize="18"
+							   HorizontalAlignment="Center" VerticalAlignment="Center" />
+					<Ellipse Width="5" Height="5" Margin="0,4,4,0"
+							 HorizontalAlignment="Right" VerticalAlignment="Top"
+							 Fill="{ThemeResource AccentFillColorDefaultBrush}"
+							 Visibility="{x:Bind ViewModel.TokenMother.HasVariants, Mode=OneWay}" />
+				</Grid>
+			</Button>
+
+			<Button Grid.Row="1" Grid.Column="0" Width="98" Height="50" FontSize="18"
+					HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+					AutomationProperties.Name="{x:Bind ViewModel.TokenOlderBrother.Label, Mode=OneWay}"
+					Command="{x:Bind ViewModel.AppendTokenCommand}"
+					CommandParameter="{x:Bind ViewModel.TokenOlderBrother, Mode=OneWay}">
+				<Grid>
+					<TextBlock Text="{x:Bind ViewModel.TokenOlderBrother.Label, Mode=OneWay}" FontSize="18"
+							   HorizontalAlignment="Center" VerticalAlignment="Center" />
+				</Grid>
+			</Button>
+			<Button Grid.Row="1" Grid.Column="1" Width="98" Height="50" FontSize="18"
+					HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+					AutomationProperties.Name="{x:Bind ViewModel.TokenYoungerBrother.Label, Mode=OneWay}"
+					Command="{x:Bind ViewModel.AppendTokenCommand}"
+					CommandParameter="{x:Bind ViewModel.TokenYoungerBrother, Mode=OneWay}">
+				<Grid>
+					<TextBlock Text="{x:Bind ViewModel.TokenYoungerBrother.Label, Mode=OneWay}" FontSize="18"
+							   HorizontalAlignment="Center" VerticalAlignment="Center" />
+				</Grid>
+			</Button>
+			<Button Grid.Row="1" Grid.Column="2" Width="98" Height="50" FontSize="18"
+					HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+					AutomationProperties.Name="{x:Bind ViewModel.TokenSpouse.Label, Mode=OneWay}"
+					Command="{x:Bind ViewModel.AppendTokenCommand}"
+					CommandParameter="{x:Bind ViewModel.TokenSpouse, Mode=OneWay}">
+				<Grid>
+					<TextBlock Text="{x:Bind ViewModel.TokenSpouse.Label, Mode=OneWay}" FontSize="18"
+							   HorizontalAlignment="Center" VerticalAlignment="Center" />
+				</Grid>
+			</Button>
+			<Button Grid.Row="1" Grid.Column="3" Width="98" Height="50" FontSize="18"
+					HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+					AutomationProperties.Name="{x:Bind ViewModel.TokenOlderSister.Label, Mode=OneWay}"
+					Command="{x:Bind ViewModel.AppendTokenCommand}"
+					CommandParameter="{x:Bind ViewModel.TokenOlderSister, Mode=OneWay}">
+				<Grid>
+					<TextBlock Text="{x:Bind ViewModel.TokenOlderSister.Label, Mode=OneWay}" FontSize="18"
+							   HorizontalAlignment="Center" VerticalAlignment="Center" />
+				</Grid>
+			</Button>
+			<Button Grid.Row="1" Grid.Column="4" Width="98" Height="50" FontSize="18"
+					HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+					AutomationProperties.Name="{x:Bind ViewModel.TokenYoungerSister.Label, Mode=OneWay}"
+					Command="{x:Bind ViewModel.AppendTokenCommand}"
+					CommandParameter="{x:Bind ViewModel.TokenYoungerSister, Mode=OneWay}">
+				<Grid>
+					<TextBlock Text="{x:Bind ViewModel.TokenYoungerSister.Label, Mode=OneWay}" FontSize="18"
+							   HorizontalAlignment="Center" VerticalAlignment="Center" />
+				</Grid>
+			</Button>
+
+			<Button Grid.Row="2" Grid.Column="1" Width="98" Height="50" FontSize="18"
+					HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+					AutomationProperties.Name="{x:Bind ViewModel.TokenSon.Label, Mode=OneWay}"
+					Command="{x:Bind ViewModel.AppendTokenCommand}"
+					CommandParameter="{x:Bind ViewModel.TokenSon, Mode=OneWay}">
+			<Button.ContextFlyout>
+				<!-- ContextFlyout covers BOTH routes the contract asks for with one mechanism: it
+				     opens on right-click and on touch press-and-hold, because both raise
+				     ContextRequested. No second gesture handler, so the two paths cannot drift
+				     apart. MenuFlyout rather than a plain Flyout because it dismisses itself when
+				     an item is chosen. -->
+				<MenuFlyout>
+					<MenuFlyoutItem Text="{x:Bind ViewModel.TokenSon.Variants[0].Label, Mode=OneWay}"
+									Command="{x:Bind ViewModel.AppendVariantCommand}"
+									CommandParameter="{x:Bind ViewModel.TokenSon.Variants[0], Mode=OneWay}" />
+					<MenuFlyoutItem Text="{x:Bind ViewModel.TokenSon.Variants[1].Label, Mode=OneWay}"
+									Command="{x:Bind ViewModel.AppendVariantCommand}"
+									CommandParameter="{x:Bind ViewModel.TokenSon.Variants[1], Mode=OneWay}" />
+					<MenuFlyoutItem Text="{x:Bind ViewModel.TokenSon.Variants[2].Label, Mode=OneWay}"
+									Command="{x:Bind ViewModel.AppendVariantCommand}"
+									CommandParameter="{x:Bind ViewModel.TokenSon.Variants[2], Mode=OneWay}" />
+				</MenuFlyout>
+			</Button.ContextFlyout>
+				<Grid>
+					<TextBlock Text="{x:Bind ViewModel.TokenSon.Label, Mode=OneWay}" FontSize="18"
+							   HorizontalAlignment="Center" VerticalAlignment="Center" />
+					<Ellipse Width="5" Height="5" Margin="0,4,4,0"
+							 HorizontalAlignment="Right" VerticalAlignment="Top"
+							 Fill="{ThemeResource AccentFillColorDefaultBrush}"
+							 Visibility="{x:Bind ViewModel.TokenSon.HasVariants, Mode=OneWay}" />
+				</Grid>
+			</Button>
+			<Button Grid.Row="2" Grid.Column="3" Width="98" Height="50" FontSize="18"
+					HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+					AutomationProperties.Name="{x:Bind ViewModel.TokenDaughter.Label, Mode=OneWay}"
+					Command="{x:Bind ViewModel.AppendTokenCommand}"
+					CommandParameter="{x:Bind ViewModel.TokenDaughter, Mode=OneWay}">
+			<Button.ContextFlyout>
+				<!-- ContextFlyout covers BOTH routes the contract asks for with one mechanism: it
+				     opens on right-click and on touch press-and-hold, because both raise
+				     ContextRequested. No second gesture handler, so the two paths cannot drift
+				     apart. MenuFlyout rather than a plain Flyout because it dismisses itself when
+				     an item is chosen. -->
+				<MenuFlyout>
+					<MenuFlyoutItem Text="{x:Bind ViewModel.TokenDaughter.Variants[0].Label, Mode=OneWay}"
+									Command="{x:Bind ViewModel.AppendVariantCommand}"
+									CommandParameter="{x:Bind ViewModel.TokenDaughter.Variants[0], Mode=OneWay}" />
+					<MenuFlyoutItem Text="{x:Bind ViewModel.TokenDaughter.Variants[1].Label, Mode=OneWay}"
+									Command="{x:Bind ViewModel.AppendVariantCommand}"
+									CommandParameter="{x:Bind ViewModel.TokenDaughter.Variants[1], Mode=OneWay}" />
+					<MenuFlyoutItem Text="{x:Bind ViewModel.TokenDaughter.Variants[2].Label, Mode=OneWay}"
+									Command="{x:Bind ViewModel.AppendVariantCommand}"
+									CommandParameter="{x:Bind ViewModel.TokenDaughter.Variants[2], Mode=OneWay}" />
+				</MenuFlyout>
+			</Button.ContextFlyout>
+				<Grid>
+					<TextBlock Text="{x:Bind ViewModel.TokenDaughter.Label, Mode=OneWay}" FontSize="18"
+							   HorizontalAlignment="Center" VerticalAlignment="Center" />
+					<Ellipse Width="5" Height="5" Margin="0,4,4,0"
+							 HorizontalAlignment="Right" VerticalAlignment="Top"
+							 Fill="{ThemeResource AccentFillColorDefaultBrush}"
+							 Visibility="{x:Bind ViewModel.TokenDaughter.HasVariants, Mode=OneWay}" />
+				</Grid>
+			</Button>
+		</Grid>
 	</Grid>
 </Window>

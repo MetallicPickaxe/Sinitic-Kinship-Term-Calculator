@@ -260,12 +260,13 @@ public class ChainShapeTests
         ChainShapeName? name = ChainShapeTermFormatter.TryFormat(shape!);
         Assert.IsNotNull(name);
         Assert.AreEqual("舅祖父", name!.Formal.ZhHant);
-        // K16: the colloquial slot is now assembled from the lexicon layers, so it carries
-        // every registered variant (北 舅爺 · 南 舅公) instead of one hard-coded dialect.
-        CollectionAssert.AreEquivalent(
-            new[] { "舅爺", "舅公" },
-            (name.Colloquial?.ZhHant ?? string.Empty).Split('|'),
-            $"colloquial set: {name.Colloquial?.ZhHant}");
+        // K16: the colloquial slot is now assembled from the lexicon layers, so it carries every
+        // registered variant (北 舅爺 · 南 舅公) instead of one hard-coded dialect. The set grows
+        // with each lexicon batch, so what is asserted is that the layer wiring reached it —
+        // spelling out the whole list just makes this test fail on every batch.
+        string[] colloquial = (name.Colloquial?.ZhHant ?? string.Empty).Split('|');
+        CollectionAssert.Contains(colloquial, "舅爺", $"colloquial set: {name.Colloquial?.ZhHant}");
+        CollectionAssert.Contains(colloquial, "舅公", $"colloquial set: {name.Colloquial?.ZhHant}");
 
         // Mixed-ascent families WITH descent (表-classes) still defer to the legacy composer.
         KinshipChainShape? cousinShape = KinshipChainShapeBuilder.Build(Chain("mother", "older-brother", "son"), PersonGender.Unknown);

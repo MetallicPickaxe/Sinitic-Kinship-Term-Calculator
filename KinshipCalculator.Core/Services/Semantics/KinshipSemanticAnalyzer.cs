@@ -595,7 +595,12 @@ internal static class KinshipSemanticAnalyzer
                 RelationType = KinshipRelationType.SiblingSpouseSibling,
                 Gender = isMale ? PersonGender.Male : PersonGender.Female,
                 GenerationChange = 0,
-                IsPaternal = false, 
+                // The BRIDGE sibling's gender, which this analyzer used to discard — it wrote
+                // IsPaternal = false unconditionally. The formatter then mirrored the terminal
+                // gender into the bridge slot, so 兄之妻之姐 came out 姊妹姻姊妹: my sister's
+                // sister, naming a bridge I do not have. The four-token analyzer right below
+                // has always recorded both ends; this one simply lost one of them.
+                IsPaternal = t0.Contains("brother"),
                 IsTopLevelPaternal = false,
                 IsSpouse = false
             };
@@ -887,25 +892,41 @@ internal static class KinshipSemanticAnalyzer
 
         if (parentCount == 0 || index >= context.Tokens.Count) return false;
 
-        if (index != context.Tokens.Count - 1) return false;
-
         var siblingToken = context.Tokens[index];
         if (!siblingToken.Id.Contains("brother") && !siblingToken.Id.Contains("sister")) return false;
+        index++;
+
+        // One optional marriage hop closes the family: 妻之伯父 has a wife, 妻之姑母 a husband, and
+        // both are named off the same pivot (伯岳母 / 姑岳父). Rejecting the hop left those five
+        // relations with no computed term at all — they fell through to a 的-chain even though the
+        // southern layer already registered 伯婆/姑公 against them.
+        Boolean marriedIn = false;
+        if (index < context.Tokens.Count && context.Tokens[index].Id == "spouse")
+        {
+            marriedIn = true;
+            index++;
+        }
+
+        if (index != context.Tokens.Count) return false;
 
         Boolean isSiblingMale = siblingToken.Id.Contains("brother");
         Boolean isSiblingOlder = siblingToken.Id.Contains("older");
         Boolean isLastParentPaternal = lastParent.Id == "father" || lastParent.Id == "adoptive-father";
         Boolean isTopLevelPaternal = firstParent.Id == "father" || firstParent.Id == "adoptive-father";
+        Boolean subjectIsMale = marriedIn ? !isSiblingMale : isSiblingMale;
 
         info = new KinshipSemanticInfo
         {
             RelationType = KinshipRelationType.SpouseCollateral,
-            Gender = isSiblingMale ? PersonGender.Male : PersonGender.Female,
-            GenerationChange = parentCount, 
-            IsPaternal = isLastParentPaternal, 
-            IsTopLevelPaternal = isTopLevelPaternal, 
+            Gender = subjectIsMale ? PersonGender.Male : PersonGender.Female,
+            GenerationChange = parentCount,
+            IsPaternal = isLastParentPaternal,
+            IsTopLevelPaternal = isTopLevelPaternal,
             AgeOrder = isSiblingOlder ? SiblingOrder.Older : SiblingOrder.Younger,
-            IsSpouse = true 
+            // The pivot's own gender picks the 伯/叔/姑/舅/姨 letter; Gender above is the person
+            // being named, which the marriage hop flips.
+            CollateralSiblingIsMale = isSiblingMale,
+            IsSpouse = true
         };
         return true;
     }
