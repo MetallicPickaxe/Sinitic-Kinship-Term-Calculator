@@ -15,13 +15,13 @@
     "The NuGet graph is recorded per release in LICENSE-INVENTORY.md, including each",
     "package's content hash, and that file's SHA-256 goes into BUILDINFO."
   ],
-  "sdkVersion": "10.0.110",
-  "sdkCommit": "f7d90799ce",
+  "sdkVersion": "11.0.100-preview.6.26359.118",
+  "sdkCommit": "ba53d0ed33",
   "msbuildVersion": "18.9.1+a81b4352504b9e097b512a9d615e8c56d013f595",
   "msbuildSha256": "602BE585E4D4A233071EF8730ECEC43522C0DB4AFBF5B93553B7B260C5BFB7FF",
-  "roslynCscSha256": "528D96B1DCDB107F046A4D137456DB18DEA51421477DFB74681011E8FC588550",
-  "visualStudioProductDisplayVersion": "Insiders [12020.428]",
-  "runtimeFrameworkVersion": "10.0.10",
-  "windowsAppSdkVersion": "2.3.1",
+  "roslynCscSha256": "55B1EF134962DD46A51A33ABE639837A874ED4D1E2F6F79ECCC911F97C667C01",
+  "visualStudioProductDisplayVersion": "Insiders [12023.133]",
+  "runtimeFrameworkVersion": "11.0.0-preview.6.26359.118",
+  "windowsAppSdkVersion": "2.3.2-experimentalA",
   "targetRuntimeIdentifier": "win-x64"
 }

@@ -6,7 +6,7 @@ Click `father · father · elder-brother` and it tells you the person is your **
 southern speakers say **伯公**, northern speakers say **大爺爺**, and how to phrase it in a legal
 document.
 
-A WinUI 3 desktop application on .NET 10. Single-file, portable.
+A WinUI 3 desktop application on .NET 11 (preview channel, pinned exactly). Single-file, portable.
 
 ## Showcase
 
@@ -252,7 +252,8 @@ Visual Studio works directly too: open `SiniticKinshipTermCalculator.slnx` and B
 **Publish** from the IDE. The profiles are deliberately lighter than the script — no staging
 transaction, licence inventory, or `BUILDINFO` — so the script above remains the release path.
 
-Requirements: Visual Studio (with MSBuild), the .NET 10 SDK (`global.json` pins the SDK band),
+Requirements: Visual Studio (with MSBuild), the .NET 11 preview SDK (`global.json` pins the exact
+version — this project deliberately tracks the latest available baseline, previews included),
 and **PowerShell 7+ (`pwsh`)** for the scripts — Windows PowerShell 5.1 cannot parse them.
 MSBuild is resolved via `vswhere -latest -prerelease` (a deliberate newest-toolchain stance);
 both scripts print the resolved MSBuild version and git HEAD so every run records its toolchain.

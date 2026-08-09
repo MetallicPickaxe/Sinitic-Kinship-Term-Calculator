@@ -189,7 +189,7 @@ if ($LASTEXITCODE -ne 0) { Write-Output 'GATE FAILED: doc-reference classifier s
 & "$root\Utility\Scripts\Test-DocReferences.ps1"
 if ($LASTEXITCODE -ne 0) { Write-Output 'GATE FAILED: shipping-document references'; exit 1 }
 
-$net = 'net10.0-windows10.0.26100.0'
+$net = 'net11.0-windows10.0.26100.0'
 # NOT in this list: Test\Test-UI.csproj. Its cases are [UITestMethod] and call window.Activate(),
 # so running them opens a real window and takes focus — unacceptable inside an unattended gate.
 # That is a deliberate exclusion, stated here rather than left invisible.

@@ -176,7 +176,7 @@ if ($SimulateFailure -eq 'live-writer') {
     throw 'SIMULATED FAILURE: live-writer'
 }
 
-$publishDir = Join-Path $repoRoot "UI\bin\x64\Release\net10.0-windows10.0.26100.0\$($lock.targetRuntimeIdentifier)\publish"
+$publishDir = Join-Path $repoRoot "UI\bin\x64\Release\net11.0-windows10.0.26100.0\$($lock.targetRuntimeIdentifier)\publish"
 $exe = Join-Path $publishDir "$ProductName.exe"
 if (-not (Test-Path $exe)) { throw "Published exe not found: $exe" }
 

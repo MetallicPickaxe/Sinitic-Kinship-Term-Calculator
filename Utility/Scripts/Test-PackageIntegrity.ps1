@@ -31,7 +31,7 @@ Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $assetsPath = Join-Path $repoRoot 'UI\obj\project.assets.json'
-$tfm = 'net10.0-windows10.0.26100.0'
+$tfm = 'net11.0-windows10.0.26100.0'
 $depsPath = Join-Path $repoRoot "UI\obj\x64\$Configuration\$tfm\$Rid\$ProductName.deps.json"
 if (-not (Test-Path $assetsPath)) { throw "project.assets.json missing: $assetsPath" }
 if (-not (Test-Path $depsPath)) { throw "Release deps.json missing: $depsPath (publish first)" }
