@@ -199,6 +199,11 @@ finite set and stops; we compute past its edge, mark the boundary plainly (a des
 | Terminal-gender consistency (random chains) | **0 / 8,730** | an oracle-free metamorphic invariant that started life as a 1.13% defect gauge; the structure-collapsing shortcuts behind it were retired across two audit rounds and the run (fixed seed, deterministic) now asserts exactly zero |
 | Generation consistency (random chains) | **12 / 2,092 terms = 0.57%** | the same idea on the other axis: one term must not name people standing at two different generations from you. Opened at 1.07%; every collision left is a documented composite-frame ambiguity of one shape. Published rather than hidden, ratcheted, and every colliding pair is dumped for the next round |
 
+One honest boundary, so nothing above overstates itself: the `Test` project (three window-level
+smoke tests) is a manual scaffold that runs only under Visual Studio's Test Explorer — it is
+deliberately **outside** the automated gates. Everything the gates enforce lives in `Test-Unit`
+and `Test-Verification`.
+
 The entry-by-entry evidence behind the 438-row line ships with the repository, judgment by
 judgment: [MumuyMainAccuracyCompact.xlsx](Resource/Data/Reference/MumuyMainAccuracyCompact.xlsx)
 is the adjudicated workbook (one row per relation: both engines' answers, the served candidates,
@@ -318,6 +323,15 @@ FE4B66691BC3BD437E2C88D4D4C738F6DEAAF60844A610E235B7D0644F0B35D1  Utility/MumuyA
 measuring, so a different oracle cannot silently change the figures. Without them the
 **90k face and the oracle-backed tests** cannot run — the 438 face needs only the tracked
 reference TSV and runs fine; everything else builds and passes.
+
+## How this was built
+
+This project is an extended human–AI collaboration. The engineering — engine, UI, test
+scaffolding, and the successive audit rounds that shaped them — was carried out with
+**Claude** (Anthropic) working under the operator's written acceptance contracts, with every
+design ruling, data adjudication, and release decision made by the operator. The release
+commit carries the co-authorship line; the arrangement is disclosed here because erasing it
+would misdescribe how the work was actually done.
 
 ## Licence
 
